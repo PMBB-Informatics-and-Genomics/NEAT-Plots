@@ -41,8 +41,9 @@ CHR_LENGTHS = {1: 248956422,
                22: 50818468,
                23: 156040895}
 
+
 # noinspection SpellCheckingInspection
-class ManhattanPlot():
+class ManhattanPlot:
     df = None
     thinned = None
 
