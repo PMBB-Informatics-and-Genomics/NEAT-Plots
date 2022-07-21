@@ -546,10 +546,12 @@ class ManhattanPlot:
         discrete = len(unique_vals) <= 40
         if not discrete:
             self.base_ax.scatter(odds_df[self.plot_x_col], odds_df[self.plot_y_col], c=odds_df[self.signal_color_col],
-                                 cmap=plt.cm.get_cmap(COLOR_MAP), s=10)
-            self.base_ax.scatter(evens_df[self.plot_x_col], evens_df[self.plot_y_col], c=evens_df[self.signal_color_col],
-                                 cmap=plt.cm.get_cmap(COLOR_MAP), s=10)
-            self.fig.colorbar()
+                                 cmap=plt.cm.get_cmap(COLOR_MAP), s=10,
+                                 vmin=odds_df[self.signal_color_col].quantile(0.05), vmax=odds_df[self.signal_color_col].quantile(0.95))
+            scat = self.base_ax.scatter(evens_df[self.plot_x_col], evens_df[self.plot_y_col], c=evens_df[self.signal_color_col],
+                                        cmap=plt.cm.get_cmap(COLOR_MAP), s=10,
+                                        vmin=odds_df[self.signal_color_col].quantile(0.05), vmax=odds_df[self.signal_color_col].quantile(0.95))
+            self.fig.colorbar(scat, cax=self.cbar_ax, orientation='horizontal')
 
         else:
             categories = sorted(unique_vals)
