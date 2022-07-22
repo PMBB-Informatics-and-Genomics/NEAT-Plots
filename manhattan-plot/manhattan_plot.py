@@ -145,6 +145,13 @@ class ManhattanPlot:
         print(len(self.df))
 
     def add_annotations(self, annot_df: pd.DataFrame, extra_cols=[]):
+        """
+
+        :param annot_df:
+        :type annot_df: pd.DataFrame
+        :param extra_cols:
+        :type extra_cols: list
+        """
         annot_cols = ['#CHROM', 'POS', 'ID']
         annot_cols.extend(extra_cols)
         self.df = self.df.drop(columns='ID_y', errors='ignore')
@@ -411,36 +418,36 @@ class ManhattanPlot:
         plt.show()
 
     def qq_plot(self, save=None, save_res=150, with_title=True, steps=30):
-        log_series = -np.log10(self.df['P'])
-        chi2_series = pd.Series(chi2.ppf(1 - self.df['P'], df=1), index=log_series.index)
-
-        max_log = log_series.max()
-
-        lambda_gc = chi2_series.median() / chi2.ppf(0.5, 1)
+        chi2_med = chi2.ppf((1 - self.df['P']).median(), df=1)
+        lambda_gc = chi2_med / chi2.ppf(0.5, 1)
         print('Lambda GC:', lambda_gc)
 
-        step_vals = pd.Series(index=np.linspace(0, max_log, steps), name='Count', dtype=float)
+        max_log = -np.log10(1 / len(self.df))
+        fraction_seq = (np.arange(len(self.df)) + 1) / len(self.df)
+        p_vec = self.df['P'].sort_values()
 
-        for thresh in step_vals.index:
-            step_vals.loc[thresh] = (log_series >= thresh).astype(int).sum()
-
-        step_fractions = step_vals / len(log_series)
-        step_logs = -np.log10(step_fractions)
+        plot_df = p_vec.to_frame()
+        plot_df['Exp P'] = fraction_seq
+        plot_df[['Log P', 'Log Exp P']] = -np.log10(plot_df[['P', 'Exp P']]).round(3)
+        plot_df = plot_df.drop_duplicates(subset=['Log P', 'Log Exp P'])
 
         plt.gcf().set_size_inches(6, 6)
         plt.gcf().set_facecolor('w')
-        plt.plot([0, max_log], [0, max_log], c='r', label='Null Model', linestyle='dashed')
-        plt.plot(step_logs.index, step_logs.values, c='blue', label='GWAS Results')
-        plt.xlabel('Expected Log10 Quantiles')
-        plt.ylabel('Observed Log10 Quantiles')
+
+        plt.plot([0, np.ceil(max_log)], [0, np.ceil(max_log)], c='r', label='Null Model', linestyle='dashed')
+        plt.scatter(plot_df['Log Exp P'], plot_df['Log P'], c='blue', label='GWAS Results', s=16)
+
+        plt.xlabel('Expected Log10 P Quantiles')
+        plt.ylabel('Observed Log10 P Quantiles')
         plt.legend(loc='upper left')
         plt.annotate('Lambda GC: ' + str(round(lambda_gc, 5)), fontsize=12,
                      xy=(0.95, 0.05), xycoords='axes fraction',
                      horizontalalignment='right', verticalalignment='bottom')
         if with_title:
             plt.title('QQ Plot:\n' + self.title)
-        plt.xlim(0, max_log)
-        plt.ylim(0, max_log)
+
+        plt.xlim(0, np.ceil(max_log))
+        plt.ylim(0, np.ceil(max(plot_df['Log P'])))
         plt.tight_layout()
         if save is not None:
             plt.savefig(save, dpi=save_res)
