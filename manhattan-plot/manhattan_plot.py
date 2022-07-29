@@ -155,13 +155,15 @@ class ManhattanPlot:
         annot_cols = ['#CHROM', 'POS', 'ID']
         annot_cols.extend(extra_cols)
         self.df = self.df.drop(columns='ID_y', errors='ignore')
+        annot_df['#CHROM'] = annot_df['#CHROM'].replace('X', 23).astype(int)
         self.df = self.df.merge(annot_df[annot_cols], on=['#CHROM', 'POS'], how='left')
         self.df['ID_x'].update(self.df['ID_y'])
         self.df = self.df.rename(columns={'ID_x': 'ID'})
 
-    def update_plotting_parameters(self, annotate='', signal_color_col='', twas_color_col='', twas_updown_col='', sig='', sug='', annot_thresh='', ld_block='', vertical='', max_log_p='', invert='', merge_genes=''):
+    def update_plotting_parameters(self, annotate='', signal_color_col='', twas_color_col='', twas_updown_col='', sig='', sug='', annot_thresh='', ld_block='', vertical='', max_log_p='', invert='', merge_genes='', title=''):
         self.annotate = self.__update_param(self.annotate, annotate)
         self.ld_block = self.__update_param(self.ld_block, ld_block)
+        self.title = self.__update_param(self.title, title)
 
         self.signal_color_col = self.__update_param(self.signal_color_col, signal_color_col)
         self.twas_updown_col = self.__update_param(self.twas_updown_col, twas_updown_col)
@@ -394,7 +396,62 @@ class ManhattanPlot:
             plt.tight_layout()
         if save is not None:
             plt.savefig(save, dpi=save_res)
-        plt.show()
+        # plt.show()
+        plt.clf()
+
+    def signal_plot(self, rep_genes=[], extra_cols={}, number_cols=[], rep_boost=False, save=None, with_table=True, save_res=150, with_title=True, keep_chr_pos=True):
+        self.__config_axes(with_table=with_table)
+
+        odds_df, evens_df = self.__find_signals_sig(rep_genes, rep_boost)
+        signal_df = pd.concat([odds_df, evens_df]).sort_values(by=['#CHROM', 'POS'])
+        signal_min = signal_df.groupby('ID')['POS'].min()
+        signal_max = signal_df.groupby('ID')['POS'].max()
+        signal_size = signal_max - signal_min
+        signal_start = signal_size.cumsum() - signal_size.iloc[0]
+        signal_mid = signal_start + (signal_size / 2)
+        if self.vertical:
+            self.base_ax.set_yticks(signal_mid.values)
+            self.base_ax.set_yticklabels(signal_mid.index)
+        else:
+            self.base_ax.set_xticks(signal_mid.values)
+            self.base_ax.set_xticklabels(signal_mid.index)
+        odd_signals = signal_size.index[::2]
+        even_signals = signal_size.index[1::2]
+        print(odd_signals)
+        print(even_signals)
+        signal_df['SIGNAL_X'] = signal_df['POS'] - signal_min.loc[signal_df['ID']].values + signal_start.loc[signal_df['ID']].values
+        print(signal_df)
+        self.plot_x_col = 'SIGNAL_X' if not self.vertical else self.plot_x_col
+        self.plot_y_col = 'SIGNAL_X' if self.vertical else self.plot_y_col
+
+        odds_df = signal_df[signal_df['ID'].isin(odd_signals)]
+        evens_df = signal_df[signal_df['ID'].isin(even_signals)]
+
+        self.base_ax.scatter(odds_df[self.plot_x_col], odds_df[self.plot_y_col], c=LIGHT_CHR_COLOR)
+        self.base_ax.scatter(evens_df[self.plot_x_col], evens_df[self.plot_y_col], c=DARK_CHR_COLOR)
+
+        peak_idx = signal_df.groupby('ID')['ROUNDED_Y'].idxmax()
+        signal_df = signal_df.rename(columns=extra_cols)
+        annot_df = signal_df.loc[peak_idx.values].set_index('ID')
+        self.annot_list = [r for _, r in annot_df.iterrows()]
+
+        self.plot_table(extra_cols=extra_cols, number_cols=number_cols, rep_genes=rep_genes, keep_chr_pos=keep_chr_pos)
+
+        # plt.show()
+        print()
+
+        return
+        if with_table:
+            self.plot_annotations(rep_genes=rep_genes, rep_boost=rep_boost)
+
+        if with_title:
+            plt.suptitle(self.title)
+            plt.tight_layout()
+        if save is not None:
+            plt.savefig(save, dpi=save_res)
+        # plt.show()
+        plt.clf()
+
 
     def full_plot_with_specific(self, signal_bed_df, plot_sig=True, rep_boost=False, rep_genes=[], extra_cols={}, number_cols=[], verbose=False, save=None, save_res=150):
         if verbose:
@@ -415,7 +472,8 @@ class ManhattanPlot:
         self.plot_table(extra_cols=extra_cols, number_cols=number_cols, rep_genes=rep_genes)
         if save is not None:
             plt.savefig(save, dpi=save_res)
-        plt.show()
+        # plt.show()
+        plt.clf()
 
     def qq_plot(self, save=None, save_res=150, with_title=True, steps=30):
         chi2_med = chi2.ppf((1 - self.df['P']).median(), df=1)
@@ -451,13 +509,54 @@ class ManhattanPlot:
         plt.tight_layout()
         if save is not None:
             plt.savefig(save, dpi=save_res)
-        plt.show()
+        # plt.show()
+        plt.clf()
 
     def save_thinned_df(self, path, pickle=True):
         if pickle:
             self.thinned.to_pickle(path)
         else:
             self.thinned.to_csv(path)
+
+    def abacus_phewas_plot(self, save=None, save_res=150, with_title=True):
+        self.vertical = False
+        self.signal_color_col = 'TRAIT'
+
+        self.__config_axes(with_table=False)
+
+        self.plot_phewas_signals()
+
+        if with_title:
+            plt.suptitle(self.title)
+            plt.tight_layout()
+        if save is not None:
+            plt.savefig(save, dpi=save_res)
+        # plt.show()
+        plt.clf()
+
+    def plot_phewas_signals(self):
+        self.df = self.df[self.df['P'] < 5E-8]
+        unique_snps = self.df['ID'].unique()
+        x_map = pd.Series(index=unique_snps, data=np.arange(len(unique_snps)) + 1)
+        for x in x_map.values:
+            self.base_ax.axvline(x, c='silver', zorder=0)
+
+        unique_traits = list(self.df['TRAIT'].unique())
+        categories = sorted(unique_traits)
+        cat_to_num = dict(zip(categories, np.arange(len(categories))))
+        cat_num_list = [cat_to_num[t] for t in self.df['TRAIT']]
+
+        self.fig.set_facecolor('w')
+        scat = self.base_ax.scatter(x_map.loc[self.df['ID']], -np.log10(self.df['P']),
+                                    c=cat_num_list,
+                                    cmap=plt.cm.get_cmap(COLOR_MAP, len(categories)),
+                                    s=60, zorder=10)
+        self.base_ax.set_xticks(x_map.values)
+        self.base_ax.set_xticklabels(x_map.index, rotation=30, ha='right')
+        self.base_ax.set_xlabel('Search Identifiers')
+        self.base_ax.set_ylabel('-Log10 P Value (Reported)')
+        print(categories, cat_to_num, unique_traits)
+        self.__add_color_bar(scat, categories)
 
     # Private Functions Start Here
 
@@ -641,9 +740,11 @@ class ManhattanPlot:
             if row['#CHROM'] % 2 == 1:
                 odds_df.loc[chr_pos_idx, 'Replication'] = np.logical_or(currentRep, gene in rep_genes)
                 odds_df.loc[chr_pos_idx, 'SIGNAL'] = True
+                odds_df.loc[chr_pos_idx, 'ID'] = gene
             else:
                 evens_df.loc[chr_pos_idx, 'Replication'] = np.logical_or(currentRep, gene in rep_genes)
                 evens_df.loc[chr_pos_idx, 'SIGNAL'] = True
+                evens_df.loc[chr_pos_idx, 'ID'] = gene
 
             signal_genes.append(gene)
 
@@ -796,6 +897,7 @@ class ManhattanPlot:
             return
 
         annot_table = pd.concat(self.annot_list, axis=1).transpose()
+        print(annot_table)
         annot_table = annot_table.sort_values(by=['#CHROM', 'POS'])
         annot_table = annot_table.reset_index()
         annot_table = annot_table.rename(columns={'#CHROM': 'CHR',
@@ -805,6 +907,8 @@ class ManhattanPlot:
         annot_table[number_cols] = annot_table[number_cols].applymap(lambda x: '{:.3}'.format(x))
 
         location = 'center left' if not self.invert else 'center right'
+        print(columns)
+        print(annot_table[columns])
         table = mpl.table.table(ax=self.table_ax,
                                 cellText=annot_table[columns].fillna('').values,
                                 colLabels=columns, loc=location,
