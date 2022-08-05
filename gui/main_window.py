@@ -1,0 +1,692 @@
+# -*- coding: utf-8 -*-
+
+################################################################################
+## Form generated from reading UI file 'main_window.ui'
+##
+## Created by: Qt User Interface Compiler version 6.3.1
+##
+## WARNING! All changes made in this file will be lost when recompiling UI file!
+################################################################################
+
+from PySide6.QtCore import (QCoreApplication, QDate, QDateTime, QLocale,
+    QMetaObject, QObject, QPoint, QRect,
+    QSize, QTime, QUrl, Qt)
+from PySide6.QtGui import (QAction, QBrush, QColor, QConicalGradient,
+    QCursor, QFont, QFontDatabase, QGradient,
+    QIcon, QImage, QKeySequence, QLinearGradient,
+    QPainter, QPalette, QPixmap, QRadialGradient,
+    QTransform)
+from PySide6.QtWidgets import (QAbstractItemView, QApplication, QComboBox, QFormLayout,
+    QFrame, QGroupBox, QHBoxLayout, QLabel,
+    QLineEdit, QListWidget, QListWidgetItem, QMainWindow,
+    QMenu, QMenuBar, QPushButton, QSizePolicy,
+    QSpinBox, QStatusBar, QTabWidget, QVBoxLayout,
+    QWidget)
+
+class Ui_MainWindow(object):
+    def setupUi(self, MainWindow):
+        if not MainWindow.objectName():
+            MainWindow.setObjectName(u"MainWindow")
+        MainWindow.resize(1135, 891)
+        MainWindow.setMinimumSize(QSize(0, 0))
+        self.actionOpen = QAction(MainWindow)
+        self.actionOpen.setObjectName(u"actionOpen")
+        self.actionInformation = QAction(MainWindow)
+        self.actionInformation.setObjectName(u"actionInformation")
+        self.centralwidget = QWidget(MainWindow)
+        self.centralwidget.setObjectName(u"centralwidget")
+        self.verticalLayout = QVBoxLayout(self.centralwidget)
+        self.verticalLayout.setObjectName(u"verticalLayout")
+        self.horizontalLayoutCentral = QHBoxLayout()
+        self.horizontalLayoutCentral.setObjectName(u"horizontalLayoutCentral")
+        self.tabWidget = QTabWidget(self.centralwidget)
+        self.tabWidget.setObjectName(u"tabWidget")
+        self.tabWidget.setMinimumSize(QSize(400, 0))
+        self.tabWidget.setMaximumSize(QSize(400, 16777215))
+        font = QFont()
+        font.setFamilies([u"Arial"])
+        self.tabWidget.setFont(font)
+        self.tabWidget.setContextMenuPolicy(Qt.NoContextMenu)
+        self.tabWidget.setTabShape(QTabWidget.Rounded)
+        self.tabLoad = QWidget()
+        self.tabLoad.setObjectName(u"tabLoad")
+        self.layoutTabLoad = QVBoxLayout(self.tabLoad)
+        self.layoutTabLoad.setObjectName(u"layoutTabLoad")
+        self.btnNext1 = QPushButton(self.tabLoad)
+        self.btnNext1.setObjectName(u"btnNext1")
+        self.btnNext1.setMinimumSize(QSize(100, 0))
+        self.btnNext1.setMaximumSize(QSize(150, 16777215))
+
+        self.layoutTabLoad.addWidget(self.btnNext1, 0, Qt.AlignHCenter)
+
+        self.line = QFrame(self.tabLoad)
+        self.line.setObjectName(u"line")
+        self.line.setFrameShape(QFrame.HLine)
+        self.line.setFrameShadow(QFrame.Sunken)
+
+        self.layoutTabLoad.addWidget(self.line)
+
+        self.groupBoxLoadData = QGroupBox(self.tabLoad)
+        self.groupBoxLoadData.setObjectName(u"groupBoxLoadData")
+        self.groupBoxLoadData.setMaximumSize(QSize(16777215, 400))
+        self.formLayout_4 = QFormLayout(self.groupBoxLoadData)
+        self.formLayout_4.setObjectName(u"formLayout_4")
+        self.labelDataFn = QLabel(self.groupBoxLoadData)
+        self.labelDataFn.setObjectName(u"labelDataFn")
+
+        self.formLayout_4.setWidget(0, QFormLayout.LabelRole, self.labelDataFn)
+
+        self.verticalLayout_2 = QVBoxLayout()
+        self.verticalLayout_2.setObjectName(u"verticalLayout_2")
+        self.lineDataFn = QLineEdit(self.groupBoxLoadData)
+        self.lineDataFn.setObjectName(u"lineDataFn")
+        self.lineDataFn.setEnabled(True)
+        font1 = QFont()
+        font1.setFamilies([u"Arial"])
+        font1.setBold(False)
+        self.lineDataFn.setFont(font1)
+        self.lineDataFn.setFrame(True)
+        self.lineDataFn.setClearButtonEnabled(False)
+
+        self.verticalLayout_2.addWidget(self.lineDataFn)
+
+        self.horizontalLayout = QHBoxLayout()
+        self.horizontalLayout.setObjectName(u"horizontalLayout")
+        self.btnDataFn = QPushButton(self.groupBoxLoadData)
+        self.btnDataFn.setObjectName(u"btnDataFn")
+
+        self.horizontalLayout.addWidget(self.btnDataFn)
+
+        self.btnDataFnLoad = QPushButton(self.groupBoxLoadData)
+        self.btnDataFnLoad.setObjectName(u"btnDataFnLoad")
+
+        self.horizontalLayout.addWidget(self.btnDataFnLoad)
+
+
+        self.verticalLayout_2.addLayout(self.horizontalLayout)
+
+
+        self.formLayout_4.setLayout(0, QFormLayout.FieldRole, self.verticalLayout_2)
+
+        self.labelTitle = QLabel(self.groupBoxLoadData)
+        self.labelTitle.setObjectName(u"labelTitle")
+
+        self.formLayout_4.setWidget(1, QFormLayout.LabelRole, self.labelTitle)
+
+        self.lineDataTitle = QLineEdit(self.groupBoxLoadData)
+        self.lineDataTitle.setObjectName(u"lineDataTitle")
+        self.lineDataTitle.setEnabled(True)
+        self.lineDataTitle.setFont(font1)
+        self.lineDataTitle.setFrame(True)
+        self.lineDataTitle.setClearButtonEnabled(False)
+
+        self.formLayout_4.setWidget(1, QFormLayout.FieldRole, self.lineDataTitle)
+
+        self.labelNumRows = QLabel(self.groupBoxLoadData)
+        self.labelNumRows.setObjectName(u"labelNumRows")
+
+        self.formLayout_4.setWidget(2, QFormLayout.LabelRole, self.labelNumRows)
+
+        self.spinTestRows = QSpinBox(self.groupBoxLoadData)
+        self.spinTestRows.setObjectName(u"spinTestRows")
+        self.spinTestRows.setMaximum(10000000)
+        self.spinTestRows.setSingleStep(100)
+        self.spinTestRows.setValue(100000)
+
+        self.formLayout_4.setWidget(2, QFormLayout.FieldRole, self.spinTestRows)
+
+        self.labelFileDelm = QLabel(self.groupBoxLoadData)
+        self.labelFileDelm.setObjectName(u"labelFileDelm")
+
+        self.formLayout_4.setWidget(3, QFormLayout.LabelRole, self.labelFileDelm)
+
+        self.bxDelimiter = QComboBox(self.groupBoxLoadData)
+        self.bxDelimiter.addItem("")
+        self.bxDelimiter.addItem("")
+        self.bxDelimiter.addItem("")
+        self.bxDelimiter.addItem("")
+        self.bxDelimiter.addItem("")
+        self.bxDelimiter.setObjectName(u"bxDelimiter")
+        self.bxDelimiter.setEditable(True)
+
+        self.formLayout_4.setWidget(3, QFormLayout.FieldRole, self.bxDelimiter)
+
+
+        self.layoutTabLoad.addWidget(self.groupBoxLoadData)
+
+        self.tabWidget.addTab(self.tabLoad, "")
+        self.tabProcess = QWidget()
+        self.tabProcess.setObjectName(u"tabProcess")
+        self.layoutTabProcess = QVBoxLayout(self.tabProcess)
+        self.layoutTabProcess.setObjectName(u"layoutTabProcess")
+        self.horizontalLayoutProcessButtons = QHBoxLayout()
+        self.horizontalLayoutProcessButtons.setObjectName(u"horizontalLayoutProcessButtons")
+        self.btnPrev1 = QPushButton(self.tabProcess)
+        self.btnPrev1.setObjectName(u"btnPrev1")
+        self.btnPrev1.setMinimumSize(QSize(100, 0))
+        self.btnPrev1.setMaximumSize(QSize(150, 16777215))
+        self.btnPrev1.setStyleSheet(u"")
+
+        self.horizontalLayoutProcessButtons.addWidget(self.btnPrev1)
+
+        self.btnNext2 = QPushButton(self.tabProcess)
+        self.btnNext2.setObjectName(u"btnNext2")
+        self.btnNext2.setMinimumSize(QSize(100, 0))
+        self.btnNext2.setMaximumSize(QSize(150, 16777215))
+        self.btnNext2.setStyleSheet(u"")
+
+        self.horizontalLayoutProcessButtons.addWidget(self.btnNext2)
+
+
+        self.layoutTabProcess.addLayout(self.horizontalLayoutProcessButtons)
+
+        self.line_2 = QFrame(self.tabProcess)
+        self.line_2.setObjectName(u"line_2")
+        self.line_2.setFrameShape(QFrame.HLine)
+        self.line_2.setFrameShadow(QFrame.Sunken)
+
+        self.layoutTabProcess.addWidget(self.line_2)
+
+        self.groupBoxSelectCols = QGroupBox(self.tabProcess)
+        self.groupBoxSelectCols.setObjectName(u"groupBoxSelectCols")
+        self.groupBoxSelectCols.setMinimumSize(QSize(0, 0))
+        self.groupBoxSelectCols.setMaximumSize(QSize(16777215, 250))
+        self.formLayout_3 = QFormLayout(self.groupBoxSelectCols)
+        self.formLayout_3.setObjectName(u"formLayout_3")
+        self.lblChromCol = QLabel(self.groupBoxSelectCols)
+        self.lblChromCol.setObjectName(u"lblChromCol")
+
+        self.formLayout_3.setWidget(0, QFormLayout.LabelRole, self.lblChromCol)
+
+        self.bxChromCol = QComboBox(self.groupBoxSelectCols)
+        self.bxChromCol.setObjectName(u"bxChromCol")
+
+        self.formLayout_3.setWidget(0, QFormLayout.FieldRole, self.bxChromCol)
+
+        self.lblPosCol = QLabel(self.groupBoxSelectCols)
+        self.lblPosCol.setObjectName(u"lblPosCol")
+
+        self.formLayout_3.setWidget(1, QFormLayout.LabelRole, self.lblPosCol)
+
+        self.bxPosCol = QComboBox(self.groupBoxSelectCols)
+        self.bxPosCol.setObjectName(u"bxPosCol")
+
+        self.formLayout_3.setWidget(1, QFormLayout.FieldRole, self.bxPosCol)
+
+        self.lblIDCol = QLabel(self.groupBoxSelectCols)
+        self.lblIDCol.setObjectName(u"lblIDCol")
+
+        self.formLayout_3.setWidget(2, QFormLayout.LabelRole, self.lblIDCol)
+
+        self.bxIDCol = QComboBox(self.groupBoxSelectCols)
+        self.bxIDCol.setObjectName(u"bxIDCol")
+
+        self.formLayout_3.setWidget(2, QFormLayout.FieldRole, self.bxIDCol)
+
+        self.lblPvalue = QLabel(self.groupBoxSelectCols)
+        self.lblPvalue.setObjectName(u"lblPvalue")
+
+        self.formLayout_3.setWidget(3, QFormLayout.LabelRole, self.lblPvalue)
+
+        self.bxPvalueCol = QComboBox(self.groupBoxSelectCols)
+        self.bxPvalueCol.setObjectName(u"bxPvalueCol")
+
+        self.formLayout_3.setWidget(3, QFormLayout.FieldRole, self.bxPvalueCol)
+
+
+        self.layoutTabProcess.addWidget(self.groupBoxSelectCols)
+
+        self.tabWidget.addTab(self.tabProcess, "")
+        self.tabAnnotations = QWidget()
+        self.tabAnnotations.setObjectName(u"tabAnnotations")
+        self.layoutTabAnnotations = QVBoxLayout(self.tabAnnotations)
+        self.layoutTabAnnotations.setObjectName(u"layoutTabAnnotations")
+        self.horizontalLayout_6 = QHBoxLayout()
+        self.horizontalLayout_6.setObjectName(u"horizontalLayout_6")
+        self.btnPrev2 = QPushButton(self.tabAnnotations)
+        self.btnPrev2.setObjectName(u"btnPrev2")
+        self.btnPrev2.setMinimumSize(QSize(100, 0))
+        self.btnPrev2.setMaximumSize(QSize(150, 16777215))
+        self.btnPrev2.setStyleSheet(u"")
+
+        self.horizontalLayout_6.addWidget(self.btnPrev2)
+
+        self.btnNext3 = QPushButton(self.tabAnnotations)
+        self.btnNext3.setObjectName(u"btnNext3")
+        self.btnNext3.setMinimumSize(QSize(100, 0))
+        self.btnNext3.setMaximumSize(QSize(150, 16777215))
+        self.btnNext3.setStyleSheet(u"")
+
+        self.horizontalLayout_6.addWidget(self.btnNext3)
+
+
+        self.layoutTabAnnotations.addLayout(self.horizontalLayout_6)
+
+        self.line_3 = QFrame(self.tabAnnotations)
+        self.line_3.setObjectName(u"line_3")
+        self.line_3.setFrameShape(QFrame.HLine)
+        self.line_3.setFrameShadow(QFrame.Sunken)
+
+        self.layoutTabAnnotations.addWidget(self.line_3)
+
+        self.groupBoxAnnFiles = QGroupBox(self.tabAnnotations)
+        self.groupBoxAnnFiles.setObjectName(u"groupBoxAnnFiles")
+        self.groupBoxAnnFiles.setMaximumSize(QSize(16777215, 200))
+        self.formLayout_5 = QFormLayout(self.groupBoxAnnFiles)
+        self.formLayout_5.setObjectName(u"formLayout_5")
+        self.labelDataFn_3 = QLabel(self.groupBoxAnnFiles)
+        self.labelDataFn_3.setObjectName(u"labelDataFn_3")
+
+        self.formLayout_5.setWidget(0, QFormLayout.LabelRole, self.labelDataFn_3)
+
+        self.verticalLayout_3 = QVBoxLayout()
+        self.verticalLayout_3.setObjectName(u"verticalLayout_3")
+        self.lineAnnotationsFn = QLineEdit(self.groupBoxAnnFiles)
+        self.lineAnnotationsFn.setObjectName(u"lineAnnotationsFn")
+        self.lineAnnotationsFn.setEnabled(True)
+        self.lineAnnotationsFn.setFont(font1)
+        self.lineAnnotationsFn.setFrame(True)
+        self.lineAnnotationsFn.setClearButtonEnabled(False)
+
+        self.verticalLayout_3.addWidget(self.lineAnnotationsFn)
+
+        self.horizontalLayout_4 = QHBoxLayout()
+        self.horizontalLayout_4.setObjectName(u"horizontalLayout_4")
+        self.btnAnnotationsFn = QPushButton(self.groupBoxAnnFiles)
+        self.btnAnnotationsFn.setObjectName(u"btnAnnotationsFn")
+
+        self.horizontalLayout_4.addWidget(self.btnAnnotationsFn)
+
+        self.btnLoadAnnotFile = QPushButton(self.groupBoxAnnFiles)
+        self.btnLoadAnnotFile.setObjectName(u"btnLoadAnnotFile")
+
+        self.horizontalLayout_4.addWidget(self.btnLoadAnnotFile)
+
+
+        self.verticalLayout_3.addLayout(self.horizontalLayout_4)
+
+
+        self.formLayout_5.setLayout(0, QFormLayout.FieldRole, self.verticalLayout_3)
+
+        self.lblKnownGeneFn = QLabel(self.groupBoxAnnFiles)
+        self.lblKnownGeneFn.setObjectName(u"lblKnownGeneFn")
+
+        self.formLayout_5.setWidget(1, QFormLayout.LabelRole, self.lblKnownGeneFn)
+
+        self.verticalLayout_4 = QVBoxLayout()
+        self.verticalLayout_4.setObjectName(u"verticalLayout_4")
+        self.lineKnownGenesFn = QLineEdit(self.groupBoxAnnFiles)
+        self.lineKnownGenesFn.setObjectName(u"lineKnownGenesFn")
+        self.lineKnownGenesFn.setEnabled(True)
+        self.lineKnownGenesFn.setFont(font1)
+        self.lineKnownGenesFn.setFrame(True)
+        self.lineKnownGenesFn.setClearButtonEnabled(False)
+
+        self.verticalLayout_4.addWidget(self.lineKnownGenesFn)
+
+        self.horizontalLayout_5 = QHBoxLayout()
+        self.horizontalLayout_5.setObjectName(u"horizontalLayout_5")
+        self.btnKnownGenesFn = QPushButton(self.groupBoxAnnFiles)
+        self.btnKnownGenesFn.setObjectName(u"btnKnownGenesFn")
+
+        self.horizontalLayout_5.addWidget(self.btnKnownGenesFn)
+
+        self.btnLoadKnownGenesFile = QPushButton(self.groupBoxAnnFiles)
+        self.btnLoadKnownGenesFile.setObjectName(u"btnLoadKnownGenesFile")
+
+        self.horizontalLayout_5.addWidget(self.btnLoadKnownGenesFile)
+
+
+        self.verticalLayout_4.addLayout(self.horizontalLayout_5)
+
+
+        self.formLayout_5.setLayout(1, QFormLayout.FieldRole, self.verticalLayout_4)
+
+
+        self.layoutTabAnnotations.addWidget(self.groupBoxAnnFiles)
+
+        self.groupBoxAnnCols = QGroupBox(self.tabAnnotations)
+        self.groupBoxAnnCols.setObjectName(u"groupBoxAnnCols")
+        self.groupBoxAnnCols.setMaximumSize(QSize(16777215, 380))
+        self.formLayout_6 = QFormLayout(self.groupBoxAnnCols)
+        self.formLayout_6.setObjectName(u"formLayout_6")
+        self.lblChromAnn = QLabel(self.groupBoxAnnCols)
+        self.lblChromAnn.setObjectName(u"lblChromAnn")
+
+        self.formLayout_6.setWidget(0, QFormLayout.LabelRole, self.lblChromAnn)
+
+        self.bxChromAnn = QComboBox(self.groupBoxAnnCols)
+        self.bxChromAnn.setObjectName(u"bxChromAnn")
+
+        self.formLayout_6.setWidget(0, QFormLayout.FieldRole, self.bxChromAnn)
+
+        self.lblPosAnn = QLabel(self.groupBoxAnnCols)
+        self.lblPosAnn.setObjectName(u"lblPosAnn")
+
+        self.formLayout_6.setWidget(1, QFormLayout.LabelRole, self.lblPosAnn)
+
+        self.bxPosAnn = QComboBox(self.groupBoxAnnCols)
+        self.bxPosAnn.setObjectName(u"bxPosAnn")
+
+        self.formLayout_6.setWidget(1, QFormLayout.FieldRole, self.bxPosAnn)
+
+        self.lblIDAnn = QLabel(self.groupBoxAnnCols)
+        self.lblIDAnn.setObjectName(u"lblIDAnn")
+
+        self.formLayout_6.setWidget(2, QFormLayout.LabelRole, self.lblIDAnn)
+
+        self.bxIDAnn = QComboBox(self.groupBoxAnnCols)
+        self.bxIDAnn.setObjectName(u"bxIDAnn")
+
+        self.formLayout_6.setWidget(2, QFormLayout.FieldRole, self.bxIDAnn)
+
+        self.lblOtherAnn = QLabel(self.groupBoxAnnCols)
+        self.lblOtherAnn.setObjectName(u"lblOtherAnn")
+
+        self.formLayout_6.setWidget(3, QFormLayout.LabelRole, self.lblOtherAnn)
+
+        self.listOtherAnn = QListWidget(self.groupBoxAnnCols)
+        self.listOtherAnn.setObjectName(u"listOtherAnn")
+        self.listOtherAnn.setMaximumSize(QSize(16777215, 200))
+        self.listOtherAnn.setSelectionMode(QAbstractItemView.MultiSelection)
+
+        self.formLayout_6.setWidget(3, QFormLayout.FieldRole, self.listOtherAnn)
+
+
+        self.layoutTabAnnotations.addWidget(self.groupBoxAnnCols)
+
+        self.tabWidget.addTab(self.tabAnnotations, "")
+        self.tabPlot = QWidget()
+        self.tabPlot.setObjectName(u"tabPlot")
+        self.layoutTabPlot = QVBoxLayout(self.tabPlot)
+#ifndef Q_OS_MAC
+        self.layoutTabPlot.setSpacing(-1)
+#endif
+        self.layoutTabPlot.setObjectName(u"layoutTabPlot")
+        self.layoutTabPlot.setContentsMargins(-1, -1, 1, -1)
+        self.horizontalLayout_3 = QHBoxLayout()
+        self.horizontalLayout_3.setObjectName(u"horizontalLayout_3")
+        self.btnPrev3 = QPushButton(self.tabPlot)
+        self.btnPrev3.setObjectName(u"btnPrev3")
+        self.btnPrev3.setMaximumSize(QSize(120, 16777215))
+        self.btnPrev3.setLayoutDirection(Qt.LeftToRight)
+        self.btnPrev3.setStyleSheet(u"")
+
+        self.horizontalLayout_3.addWidget(self.btnPrev3)
+
+
+        self.layoutTabPlot.addLayout(self.horizontalLayout_3)
+
+        self.line_4 = QFrame(self.tabPlot)
+        self.line_4.setObjectName(u"line_4")
+        self.line_4.setFrameShape(QFrame.HLine)
+        self.line_4.setFrameShadow(QFrame.Sunken)
+
+        self.layoutTabPlot.addWidget(self.line_4)
+
+        self.groupBoxPval = QGroupBox(self.tabPlot)
+        self.groupBoxPval.setObjectName(u"groupBoxPval")
+        self.groupBoxPval.setMaximumSize(QSize(16777215, 150))
+        self.formLayout = QFormLayout(self.groupBoxPval)
+        self.formLayout.setObjectName(u"formLayout")
+        self.lblSuggestThresh = QLabel(self.groupBoxPval)
+        self.lblSuggestThresh.setObjectName(u"lblSuggestThresh")
+
+        self.formLayout.setWidget(0, QFormLayout.LabelRole, self.lblSuggestThresh)
+
+        self.lineSuggestThresh = QLineEdit(self.groupBoxPval)
+        self.lineSuggestThresh.setObjectName(u"lineSuggestThresh")
+        self.lineSuggestThresh.setAlignment(Qt.AlignRight|Qt.AlignTrailing|Qt.AlignVCenter)
+
+        self.formLayout.setWidget(0, QFormLayout.FieldRole, self.lineSuggestThresh)
+
+        self.lblSigThresh = QLabel(self.groupBoxPval)
+        self.lblSigThresh.setObjectName(u"lblSigThresh")
+
+        self.formLayout.setWidget(1, QFormLayout.LabelRole, self.lblSigThresh)
+
+        self.lineSigThresh = QLineEdit(self.groupBoxPval)
+        self.lineSigThresh.setObjectName(u"lineSigThresh")
+        self.lineSigThresh.setAlignment(Qt.AlignRight|Qt.AlignTrailing|Qt.AlignVCenter)
+
+        self.formLayout.setWidget(1, QFormLayout.FieldRole, self.lineSigThresh)
+
+        self.lblMaxLogP = QLabel(self.groupBoxPval)
+        self.lblMaxLogP.setObjectName(u"lblMaxLogP")
+
+        self.formLayout.setWidget(2, QFormLayout.LabelRole, self.lblMaxLogP)
+
+        self.lineMaxLogP = QLineEdit(self.groupBoxPval)
+        self.lineMaxLogP.setObjectName(u"lineMaxLogP")
+        self.lineMaxLogP.setAlignment(Qt.AlignRight|Qt.AlignTrailing|Qt.AlignVCenter)
+
+        self.formLayout.setWidget(2, QFormLayout.FieldRole, self.lineMaxLogP)
+
+
+        self.layoutTabPlot.addWidget(self.groupBoxPval)
+
+        self.groupBoxSignals = QGroupBox(self.tabPlot)
+        self.groupBoxSignals.setObjectName(u"groupBoxSignals")
+        self.groupBoxSignals.setMaximumSize(QSize(16777215, 180))
+        self.formLayout_2 = QFormLayout(self.groupBoxSignals)
+        self.formLayout_2.setObjectName(u"formLayout_2")
+        self.lblLDBlockWidth = QLabel(self.groupBoxSignals)
+        self.lblLDBlockWidth.setObjectName(u"lblLDBlockWidth")
+
+        self.formLayout_2.setWidget(0, QFormLayout.LabelRole, self.lblLDBlockWidth)
+
+        self.lineLDLBlockWidth = QLineEdit(self.groupBoxSignals)
+        self.lineLDLBlockWidth.setObjectName(u"lineLDLBlockWidth")
+        self.lineLDLBlockWidth.setAlignment(Qt.AlignRight|Qt.AlignTrailing|Qt.AlignVCenter)
+
+        self.formLayout_2.setWidget(0, QFormLayout.FieldRole, self.lineLDLBlockWidth)
+
+        self.lblMergeGenes = QLabel(self.groupBoxSignals)
+        self.lblMergeGenes.setObjectName(u"lblMergeGenes")
+        self.lblMergeGenes.setMidLineWidth(0)
+
+        self.formLayout_2.setWidget(1, QFormLayout.LabelRole, self.lblMergeGenes)
+
+        self.bxMergeGenes = QComboBox(self.groupBoxSignals)
+        self.bxMergeGenes.addItem("")
+        self.bxMergeGenes.addItem("")
+        self.bxMergeGenes.setObjectName(u"bxMergeGenes")
+
+        self.formLayout_2.setWidget(1, QFormLayout.FieldRole, self.bxMergeGenes)
+
+        self.lblBoostKnown = QLabel(self.groupBoxSignals)
+        self.lblBoostKnown.setObjectName(u"lblBoostKnown")
+
+        self.formLayout_2.setWidget(2, QFormLayout.LabelRole, self.lblBoostKnown)
+
+        self.bxBoostKnown = QComboBox(self.groupBoxSignals)
+        self.bxBoostKnown.addItem("")
+        self.bxBoostKnown.addItem("")
+        self.bxBoostKnown.setObjectName(u"bxBoostKnown")
+
+        self.formLayout_2.setWidget(2, QFormLayout.FieldRole, self.bxBoostKnown)
+
+
+        self.layoutTabPlot.addWidget(self.groupBoxSignals)
+
+        self.horizontalLayout_2 = QHBoxLayout()
+        self.horizontalLayout_2.setObjectName(u"horizontalLayout_2")
+        self.btnPlot = QPushButton(self.tabPlot)
+        self.btnPlot.setObjectName(u"btnPlot")
+        self.btnPlot.setMaximumSize(QSize(150, 16777215))
+        self.btnPlot.setStyleSheet(u"")
+
+        self.horizontalLayout_2.addWidget(self.btnPlot)
+
+        self.btnSave = QPushButton(self.tabPlot)
+        self.btnSave.setObjectName(u"btnSave")
+        self.btnSave.setMaximumSize(QSize(150, 16777215))
+        self.btnSave.setStyleSheet(u"")
+
+        self.horizontalLayout_2.addWidget(self.btnSave)
+
+
+        self.layoutTabPlot.addLayout(self.horizontalLayout_2)
+
+        self.tabWidget.addTab(self.tabPlot, "")
+
+        self.horizontalLayoutCentral.addWidget(self.tabWidget)
+
+        self.framePlot = QFrame(self.centralwidget)
+        self.framePlot.setObjectName(u"framePlot")
+        self.framePlot.setFont(font)
+        self.framePlot.setFrameShape(QFrame.StyledPanel)
+        self.framePlot.setFrameShadow(QFrame.Raised)
+
+        self.horizontalLayoutCentral.addWidget(self.framePlot)
+
+
+        self.verticalLayout.addLayout(self.horizontalLayoutCentral)
+
+        MainWindow.setCentralWidget(self.centralwidget)
+        self.menubar = QMenuBar(MainWindow)
+        self.menubar.setObjectName(u"menubar")
+        self.menubar.setGeometry(QRect(0, 0, 1135, 24))
+        self.menuFile = QMenu(self.menubar)
+        self.menuFile.setObjectName(u"menuFile")
+        self.menuAbout = QMenu(self.menubar)
+        self.menuAbout.setObjectName(u"menuAbout")
+        MainWindow.setMenuBar(self.menubar)
+        self.statusbar = QStatusBar(MainWindow)
+        self.statusbar.setObjectName(u"statusbar")
+        MainWindow.setStatusBar(self.statusbar)
+
+        self.menubar.addAction(self.menuFile.menuAction())
+        self.menubar.addAction(self.menuAbout.menuAction())
+        self.menuFile.addAction(self.actionOpen)
+        self.menuAbout.addAction(self.actionInformation)
+
+        self.retranslateUi(MainWindow)
+
+        self.tabWidget.setCurrentIndex(1)
+        self.bxDelimiter.setCurrentIndex(0)
+        self.bxMergeGenes.setCurrentIndex(1)
+        self.bxBoostKnown.setCurrentIndex(1)
+
+
+        QMetaObject.connectSlotsByName(MainWindow)
+    # setupUi
+
+    def retranslateUi(self, MainWindow):
+        MainWindow.setWindowTitle(QCoreApplication.translate("MainWindow", u"NEAT", None))
+        self.actionOpen.setText(QCoreApplication.translate("MainWindow", u"&Open", None))
+        self.actionInformation.setText(QCoreApplication.translate("MainWindow", u"Information", None))
+        self.btnNext1.setText(QCoreApplication.translate("MainWindow", u"Next", None))
+        self.groupBoxLoadData.setTitle(QCoreApplication.translate("MainWindow", u"Input Data", None))
+        self.labelDataFn.setText(QCoreApplication.translate("MainWindow", u"Data file", None))
+        self.btnDataFn.setText(QCoreApplication.translate("MainWindow", u"...", None))
+        self.btnDataFnLoad.setText(QCoreApplication.translate("MainWindow", u"Load", None))
+        self.labelTitle.setText(QCoreApplication.translate("MainWindow", u"Title", None))
+#if QT_CONFIG(tooltip)
+        self.labelNumRows.setToolTip(QCoreApplication.translate("MainWindow", u"Number of rows to test", None))
+#endif // QT_CONFIG(tooltip)
+        self.labelNumRows.setText(QCoreApplication.translate("MainWindow", u"Test Rows", None))
+#if QT_CONFIG(tooltip)
+        self.labelFileDelm.setToolTip(QCoreApplication.translate("MainWindow", u"Delimiter separating columns in data file", None))
+#endif // QT_CONFIG(tooltip)
+        self.labelFileDelm.setText(QCoreApplication.translate("MainWindow", u"File delimiter", None))
+        self.bxDelimiter.setItemText(0, QCoreApplication.translate("MainWindow", u"whitespace", None))
+        self.bxDelimiter.setItemText(1, QCoreApplication.translate("MainWindow", u",", None))
+        self.bxDelimiter.setItemText(2, QCoreApplication.translate("MainWindow", u"tab", None))
+        self.bxDelimiter.setItemText(3, QCoreApplication.translate("MainWindow", u"|", None))
+        self.bxDelimiter.setItemText(4, QCoreApplication.translate("MainWindow", u"space", None))
+
+        self.tabWidget.setTabText(self.tabWidget.indexOf(self.tabLoad), QCoreApplication.translate("MainWindow", u"Load", None))
+        self.btnPrev1.setText(QCoreApplication.translate("MainWindow", u"Previous", None))
+        self.btnNext2.setText(QCoreApplication.translate("MainWindow", u"Next", None))
+        self.groupBoxSelectCols.setTitle(QCoreApplication.translate("MainWindow", u"Select columns ", None))
+#if QT_CONFIG(tooltip)
+        self.lblChromCol.setToolTip(QCoreApplication.translate("MainWindow", u"Number of rows to test", None))
+#endif // QT_CONFIG(tooltip)
+        self.lblChromCol.setText(QCoreApplication.translate("MainWindow", u"Chromosome column", None))
+#if QT_CONFIG(tooltip)
+        self.lblPosCol.setToolTip(QCoreApplication.translate("MainWindow", u"Number of rows to test", None))
+#endif // QT_CONFIG(tooltip)
+        self.lblPosCol.setText(QCoreApplication.translate("MainWindow", u"Position column", None))
+#if QT_CONFIG(tooltip)
+        self.lblIDCol.setToolTip(QCoreApplication.translate("MainWindow", u"Number of rows to test", None))
+#endif // QT_CONFIG(tooltip)
+        self.lblIDCol.setText(QCoreApplication.translate("MainWindow", u"ID column", None))
+#if QT_CONFIG(tooltip)
+        self.lblPvalue.setToolTip(QCoreApplication.translate("MainWindow", u"Either P value column OR Log-P column name", None))
+#endif // QT_CONFIG(tooltip)
+        self.lblPvalue.setText(QCoreApplication.translate("MainWindow", u"P-Value column", None))
+        self.tabWidget.setTabText(self.tabWidget.indexOf(self.tabProcess), QCoreApplication.translate("MainWindow", u"Process", None))
+        self.btnPrev2.setText(QCoreApplication.translate("MainWindow", u"Previous", None))
+        self.btnNext3.setText(QCoreApplication.translate("MainWindow", u"Next", None))
+        self.groupBoxAnnFiles.setTitle(QCoreApplication.translate("MainWindow", u"Load Files", None))
+        self.labelDataFn_3.setText(QCoreApplication.translate("MainWindow", u"Annotations", None))
+        self.btnAnnotationsFn.setText(QCoreApplication.translate("MainWindow", u"...", None))
+        self.btnLoadAnnotFile.setText(QCoreApplication.translate("MainWindow", u"Load", None))
+        self.lblKnownGeneFn.setText(QCoreApplication.translate("MainWindow", u"Known genes", None))
+        self.btnKnownGenesFn.setText(QCoreApplication.translate("MainWindow", u"...", None))
+        self.btnLoadKnownGenesFile.setText(QCoreApplication.translate("MainWindow", u"Load", None))
+        self.groupBoxAnnCols.setTitle(QCoreApplication.translate("MainWindow", u"Annotation file column identification", None))
+#if QT_CONFIG(tooltip)
+        self.lblChromAnn.setToolTip(QCoreApplication.translate("MainWindow", u"Number of rows to test", None))
+#endif // QT_CONFIG(tooltip)
+        self.lblChromAnn.setText(QCoreApplication.translate("MainWindow", u"Chromosome ", None))
+#if QT_CONFIG(tooltip)
+        self.lblPosAnn.setToolTip(QCoreApplication.translate("MainWindow", u"Number of rows to test", None))
+#endif // QT_CONFIG(tooltip)
+        self.lblPosAnn.setText(QCoreApplication.translate("MainWindow", u"Position ", None))
+#if QT_CONFIG(tooltip)
+        self.lblIDAnn.setToolTip(QCoreApplication.translate("MainWindow", u"Number of rows to test", None))
+#endif // QT_CONFIG(tooltip)
+        self.lblIDAnn.setText(QCoreApplication.translate("MainWindow", u"ID ", None))
+#if QT_CONFIG(tooltip)
+        self.lblOtherAnn.setToolTip(QCoreApplication.translate("MainWindow", u"Number of rows to test", None))
+#endif // QT_CONFIG(tooltip)
+        self.lblOtherAnn.setText(QCoreApplication.translate("MainWindow", u"Other columns", None))
+#if QT_CONFIG(tooltip)
+        self.listOtherAnn.setToolTip(QCoreApplication.translate("MainWindow", u"Click to select additional columns from annotation", None))
+#endif // QT_CONFIG(tooltip)
+        self.tabWidget.setTabText(self.tabWidget.indexOf(self.tabAnnotations), QCoreApplication.translate("MainWindow", u"Annotations", None))
+        self.btnPrev3.setText(QCoreApplication.translate("MainWindow", u"Previous", None))
+        self.groupBoxPval.setTitle(QCoreApplication.translate("MainWindow", u"P-Value Options", None))
+#if QT_CONFIG(tooltip)
+        self.lblSuggestThresh.setToolTip(QCoreApplication.translate("MainWindow", u"Number of rows to test", None))
+#endif // QT_CONFIG(tooltip)
+        self.lblSuggestThresh.setText(QCoreApplication.translate("MainWindow", u"Suggestive Threshold", None))
+        self.lineSuggestThresh.setText(QCoreApplication.translate("MainWindow", u"1E-5", None))
+#if QT_CONFIG(tooltip)
+        self.lblSigThresh.setToolTip(QCoreApplication.translate("MainWindow", u"Number of rows to test", None))
+#endif // QT_CONFIG(tooltip)
+        self.lblSigThresh.setText(QCoreApplication.translate("MainWindow", u"Significant Threshold", None))
+        self.lineSigThresh.setText(QCoreApplication.translate("MainWindow", u"5E-8", None))
+#if QT_CONFIG(tooltip)
+        self.lblMaxLogP.setToolTip(QCoreApplication.translate("MainWindow", u"Number of rows to test", None))
+#endif // QT_CONFIG(tooltip)
+        self.lblMaxLogP.setText(QCoreApplication.translate("MainWindow", u"Max Log P (axis limit)", None))
+        self.groupBoxSignals.setTitle(QCoreApplication.translate("MainWindow", u"Signal Choice Options", None))
+#if QT_CONFIG(tooltip)
+        self.lblLDBlockWidth.setToolTip(QCoreApplication.translate("MainWindow", u"Number of rows to test", None))
+#endif // QT_CONFIG(tooltip)
+        self.lblLDBlockWidth.setText(QCoreApplication.translate("MainWindow", u"LD Block Width", None))
+        self.lineLDLBlockWidth.setText(QCoreApplication.translate("MainWindow", u"4E5", None))
+#if QT_CONFIG(tooltip)
+        self.lblMergeGenes.setToolTip(QCoreApplication.translate("MainWindow", u"Number of rows to test", None))
+#endif // QT_CONFIG(tooltip)
+        self.lblMergeGenes.setText(QCoreApplication.translate("MainWindow", u"Merge Genes", None))
+        self.bxMergeGenes.setItemText(0, QCoreApplication.translate("MainWindow", u"True", None))
+        self.bxMergeGenes.setItemText(1, QCoreApplication.translate("MainWindow", u"False", None))
+
+#if QT_CONFIG(tooltip)
+        self.lblBoostKnown.setToolTip(QCoreApplication.translate("MainWindow", u"Number of rows to test", None))
+#endif // QT_CONFIG(tooltip)
+        self.lblBoostKnown.setText(QCoreApplication.translate("MainWindow", u"Boost Known Signals", None))
+        self.bxBoostKnown.setItemText(0, QCoreApplication.translate("MainWindow", u"True", None))
+        self.bxBoostKnown.setItemText(1, QCoreApplication.translate("MainWindow", u"False", None))
+
+        self.btnPlot.setText(QCoreApplication.translate("MainWindow", u"GENERATE PLOT", None))
+        self.btnSave.setText(QCoreApplication.translate("MainWindow", u"SAVE PLOT", None))
+        self.tabWidget.setTabText(self.tabWidget.indexOf(self.tabPlot), QCoreApplication.translate("MainWindow", u"Plot", None))
+        self.menuFile.setTitle(QCoreApplication.translate("MainWindow", u"File", None))
+        self.menuAbout.setTitle(QCoreApplication.translate("MainWindow", u"About", None))
+    # retranslateUi
+
