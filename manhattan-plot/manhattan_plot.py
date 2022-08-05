@@ -101,6 +101,7 @@ class ManhattanPlot:
         else:
             self.df = pd.read_table(self.path, sep=delim, nrows=self.test_rows)
 
+        self.df.index = np.arange(len(self.df))
         print('Loaded', len(self.df), 'Rows')
         print(self.df.columns)
 
@@ -258,48 +259,8 @@ class ManhattanPlot:
             self.base_ax.scatter(odds_df[self.plot_x_col], odds_df[self.plot_y_col], c='silver', s=2)
             self.base_ax.scatter(evens_df[self.plot_x_col], evens_df[self.plot_y_col], c='dimgray', s=2)
 
-        if self.vertical:
-            self.base_ax.set_ylim(self.df['ABS_POS'].min(), self.df['ABS_POS'].max())
-            self.base_ax.set_xlabel('- Log10 P')
-            self.base_ax.set_ylabel('Chromosomal Position')
-            self.base_ax.axvline(-np.log10(self.sig_line), c=FIFTH_COLOR)
-            self.base_ax.invert_yaxis()
-            invisi_spine = 'right' if not self.invert else 'left'
-            self.base_ax.spines[invisi_spine].set_visible(False)
-        else:
-            self.base_ax.set_xlim(self.df['ABS_POS'].min(), self.df['ABS_POS'].max())
-            self.base_ax.set_ylabel('- Log10 P')
-            self.base_ax.set_xlabel('Chromosomal Position')
-            self.base_ax.axhline(-np.log10(self.sig_line), c=FIFTH_COLOR)
-            invisi_spine = 'top' if not self.invert else 'bottom'
-            self.base_ax.spines[invisi_spine].set_visible(False)
-
         self.__add_threshold_ticks()
-
-        if self.vertical:
-            if not self.invert:
-                self.base_ax.set_xlim(left=0)
-                if self.max_log_p is not None:
-                    self.base_ax.set_xlim(right=self.max_log_p)
-                self.max_x = self.base_ax.get_xlim()[1]
-            else:
-                self.base_ax.set_xlim(right=0)
-                if self.max_log_p is not None:
-                    self.base_ax.set_xlim(left=self.max_log_p)
-                self.max_x = self.base_ax.get_xlim()[0]
-        else:
-            if not self.invert:
-                self.base_ax.set_ylim(bottom=np.floor(-np.log10(self.df['P'].max())))
-                if self.max_log_p is not None:
-                    self.base_ax.set_ylim(top=self.max_log_p)
-                self.max_y = self.base_ax.get_ylim()[1]
-            else:
-                self.base_ax.set_ylim(top=np.floor(-np.log10(self.df['P'].max())))
-                if self.max_log_p is not None:
-                    self.base_ax.set_ylim(bottom=self.max_log_p)
-                self.max_y = self.base_ax.get_ylim()[0]
-
-        self.fig.patch.set_facecolor('white')
+        self.__cosmetic_axis_edits()
 
     def plot_specific_signals(self, signal_bed_df):
         odds_df, evens_df = self.__find_signals_specific(signal_bed_df)
@@ -397,17 +358,21 @@ class ManhattanPlot:
         if save is not None:
             plt.savefig(save, dpi=save_res)
         # plt.show()
-        plt.clf()
+        # plt.clf()
 
     def signal_plot(self, rep_genes=[], extra_cols={}, number_cols=[], rep_boost=False, save=None, with_table=True, save_res=150, with_title=True, keep_chr_pos=True):
         self.__config_axes(with_table=with_table)
 
         odds_df, evens_df = self.__find_signals_sig(rep_genes, rep_boost)
         signal_df = pd.concat([odds_df, evens_df]).sort_values(by=['#CHROM', 'POS'])
-        signal_min = signal_df.groupby('ID')['POS'].min()
-        signal_max = signal_df.groupby('ID')['POS'].max()
+        signal_order = signal_df['ID'].unique()
+        signal_min = signal_df.groupby('ID')['POS'].min().loc[signal_order]
+        signal_max = signal_df.groupby('ID')['POS'].max().loc[signal_order]
         signal_size = signal_max - signal_min
-        signal_start = signal_size.cumsum() - signal_size.iloc[0]
+        start_vals = signal_size.cumsum().values[:-1]
+        signal_start = pd.Series(data=start_vals, index=signal_size.index[1:])
+        signal_start.loc[signal_size.index[0]] = 0
+        signal_start = signal_start.loc[signal_size.index]
         signal_mid = signal_start + (signal_size / 2)
         if self.vertical:
             self.base_ax.set_yticks(signal_mid.values)
@@ -417,41 +382,47 @@ class ManhattanPlot:
             self.base_ax.set_xticklabels(signal_mid.index)
         odd_signals = signal_size.index[::2]
         even_signals = signal_size.index[1::2]
-        print(odd_signals)
-        print(even_signals)
-        signal_df['SIGNAL_X'] = signal_df['POS'] - signal_min.loc[signal_df['ID']].values + signal_start.loc[signal_df['ID']].values
-        print(signal_df)
+        pos_adjust = - signal_min.loc[signal_df['ID']] + signal_start.loc[signal_df['ID']]
+        signal_df['SIGNAL_X'] = signal_df['POS'] + pos_adjust.values
+        signal_df['SIGNAL_TEST'] = signal_df['POS'] - signal_min.loc[signal_df['ID']].values
+        self.df['SIGNAL_POS'] = signal_df['SIGNAL_X']
         self.plot_x_col = 'SIGNAL_X' if not self.vertical else self.plot_x_col
         self.plot_y_col = 'SIGNAL_X' if self.vertical else self.plot_y_col
 
         odds_df = signal_df[signal_df['ID'].isin(odd_signals)]
         evens_df = signal_df[signal_df['ID'].isin(even_signals)]
 
-        self.base_ax.scatter(odds_df[self.plot_x_col], odds_df[self.plot_y_col], c=LIGHT_CHR_COLOR)
-        self.base_ax.scatter(evens_df[self.plot_x_col], evens_df[self.plot_y_col], c=DARK_CHR_COLOR)
+        self.base_ax.scatter(odds_df[self.plot_x_col], odds_df[self.plot_y_col], c=LIGHT_CHR_COLOR, s=25)
+        self.base_ax.scatter(evens_df[self.plot_x_col], evens_df[self.plot_y_col], c=DARK_CHR_COLOR, s=25)
 
         peak_idx = signal_df.groupby('ID')['ROUNDED_Y'].idxmax()
         signal_df = signal_df.rename(columns=extra_cols)
         annot_df = signal_df.loc[peak_idx.values].set_index('ID')
         self.annot_list = [r for _, r in annot_df.iterrows()]
 
+        self.__cosmetic_axis_edits(signals_only=True)
+        if self.vertical:
+            self.base_ax.set_ylabel('Signal Label')
+        else:
+            self.base_ax.set_xlabel('Signal Label')
+
+        for _, row in annot_df.iterrows():
+            if self.vertical:
+                self.base_ax.plot([row[self.plot_x_col], self.max_x],
+                                  [row[self.plot_y_col], row[self.plot_y_col]],
+                                  c='silver', linewidth=1.5, alpha=1)
+            else:
+                self.base_ax.plot([row[self.plot_x_col], row[self.plot_x_col]],
+                                  [row[self.plot_y_col], self.max_y],
+                                  c='silver', linewidth=1.5, alpha=1)
         self.plot_table(extra_cols=extra_cols, number_cols=number_cols, rep_genes=rep_genes, keep_chr_pos=keep_chr_pos)
 
-        # plt.show()
-        print()
-
-        return
-        if with_table:
-            self.plot_annotations(rep_genes=rep_genes, rep_boost=rep_boost)
-
         if with_title:
-            plt.suptitle(self.title)
+            plt.suptitle('Signals Only:\n' + self.title)
             plt.tight_layout()
         if save is not None:
             plt.savefig(save, dpi=save_res)
         # plt.show()
-        plt.clf()
-
 
     def full_plot_with_specific(self, signal_bed_df, plot_sig=True, rep_boost=False, rep_genes=[], extra_cols={}, number_cols=[], verbose=False, save=None, save_res=150):
         if verbose:
@@ -473,7 +444,7 @@ class ManhattanPlot:
         if save is not None:
             plt.savefig(save, dpi=save_res)
         # plt.show()
-        plt.clf()
+        # plt.clf()
 
     def qq_plot(self, save=None, save_res=150, with_title=True, steps=30):
         chi2_med = chi2.ppf((1 - self.df['P']).median(), df=1)
@@ -510,7 +481,7 @@ class ManhattanPlot:
         if save is not None:
             plt.savefig(save, dpi=save_res)
         # plt.show()
-        plt.clf()
+        # plt.clf()
 
     def save_thinned_df(self, path, pickle=True):
         if pickle:
@@ -532,7 +503,7 @@ class ManhattanPlot:
         if save is not None:
             plt.savefig(save, dpi=save_res)
         # plt.show()
-        plt.clf()
+        # plt.clf()
 
     def plot_phewas_signals(self):
         self.df = self.df[self.df['P'] < 5E-8]
@@ -685,6 +656,48 @@ class ManhattanPlot:
                 self.base_ax.plot([t, t], [end1, end2], c=FIFTH_COLOR)
             else:
                 self.base_ax.plot([end1, end2], [t, t], c=FIFTH_COLOR)
+
+    def __cosmetic_axis_edits(self, signals_only=False):
+        pos_col = 'ABS_POS' if not signals_only else 'SIGNAL_POS'
+        if self.vertical:
+            self.base_ax.set_ylim(self.df[pos_col].min(), self.df[pos_col].max())
+            self.base_ax.set_xlabel('- Log10 P')
+            self.base_ax.set_ylabel('Chromosomal Position')
+            self.base_ax.axvline(-np.log10(self.sig_line), c=FIFTH_COLOR)
+            self.base_ax.invert_yaxis()
+            invisi_spine = 'right' if not self.invert else 'left'
+            self.base_ax.spines[invisi_spine].set_visible(False)
+
+            if not self.invert:
+                self.base_ax.set_xlim(left=0)
+                if self.max_log_p is not None:
+                    self.base_ax.set_xlim(right=self.max_log_p)
+                self.max_x = self.base_ax.get_xlim()[1]
+            else:
+                self.base_ax.set_xlim(right=0)
+                if self.max_log_p is not None:
+                    self.base_ax.set_xlim(left=self.max_log_p)
+                self.max_x = self.base_ax.get_xlim()[0]
+        else:
+            self.base_ax.set_xlim(self.df[pos_col].min(), self.df[pos_col].max())
+            self.base_ax.set_ylabel('- Log10 P')
+            self.base_ax.set_xlabel('Chromosomal Position')
+            self.base_ax.axhline(-np.log10(self.sig_line), c=FIFTH_COLOR)
+            invisi_spine = 'top' if not self.invert else 'bottom'
+            self.base_ax.spines[invisi_spine].set_visible(False)
+
+            if not self.invert:
+                self.base_ax.set_ylim(bottom=np.floor(-np.log10(self.df['P'].max())))
+                if self.max_log_p is not None:
+                    self.base_ax.set_ylim(top=self.max_log_p)
+                self.max_y = self.base_ax.get_ylim()[1]
+            else:
+                self.base_ax.set_ylim(top=np.floor(-np.log10(self.df['P'].max())))
+                if self.max_log_p is not None:
+                    self.base_ax.set_ylim(bottom=self.max_log_p)
+                self.max_y = self.base_ax.get_ylim()[0]
+
+        self.fig.patch.set_facecolor('white')
 
     def __find_signals_sig(self, rep_genes=[], rep_boost=False):
         odds_df, evens_df = self.__get_odds_evens()
@@ -868,8 +881,6 @@ class ManhattanPlot:
             self.__add_color_bar(scat, categories)
 
     def __add_color_bar(self, mappable, categories):
-        print(mappable)
-        print(categories)
         cbar = self.fig.colorbar(mappable, cax=self.cbar_ax, orientation='horizontal')
         xmin, xmax = self.cbar_ax.get_xlim()
         factor = (xmax - xmin) / len(categories)
@@ -897,7 +908,6 @@ class ManhattanPlot:
             return
 
         annot_table = pd.concat(self.annot_list, axis=1).transpose()
-        print(annot_table)
         annot_table = annot_table.sort_values(by=['#CHROM', 'POS'])
         annot_table = annot_table.reset_index()
         annot_table = annot_table.rename(columns={'#CHROM': 'CHR',
@@ -907,8 +917,6 @@ class ManhattanPlot:
         annot_table[number_cols] = annot_table[number_cols].applymap(lambda x: '{:.3}'.format(x))
 
         location = 'center left' if not self.invert else 'center right'
-        print(columns)
-        print(annot_table[columns])
         table = mpl.table.table(ax=self.table_ax,
                                 cellText=annot_table[columns].fillna('').values,
                                 colLabels=columns, loc=location,
@@ -963,16 +971,16 @@ class ManhattanPlot:
         self.fig.tight_layout()
 
         if self.twas_color_col is not None:
-            cmap = plt.cm.get_cmap(COLOR_MAP)
             unique_vals = sorted(annotTable[self.twas_color_col].unique())
-            fractions = np.arange(len(unique_vals)) / len(unique_vals)
+            cmap = plt.cm.get_cmap(COLOR_MAP, len(unique_vals))
+            fractions = (np.arange(len(unique_vals)) / len(unique_vals)) + (0.5 / len(unique_vals))
             colors = [cmap(f) for f in fractions]
             color_map = dict(zip(unique_vals, colors))
 
             fractions = list(fractions)
             fractions.append(1.0)
-            new_norm = mpl.colors.BoundaryNorm(boundaries=fractions, ncolors=len(fractions) - 1)
-            new_mappable = plt.cm.ScalarMappable(norm=new_norm, cmap=plt.cm.get_cmap(COLOR_MAP, len(fractions) - 1))
+            new_norm = mpl.colors.BoundaryNorm(boundaries=np.arange(len(unique_vals)+1), ncolors=len(unique_vals))
+            new_mappable = plt.cm.ScalarMappable(norm=new_norm, cmap=plt.cm.get_cmap(COLOR_MAP, len(unique_vals)))
             self.__add_color_bar(new_mappable, color_map.keys())
 
         cell_width = table[(0, 0)].get_width()
