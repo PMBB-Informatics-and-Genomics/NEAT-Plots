@@ -896,16 +896,15 @@ class ManhattanPlot:
         self.fig.tight_layout()
 
     def __plot_table_vertical(self, extra_cols={}, number_cols=[], rep_genes=[], keep_chr_pos=True):
+        if len(self.annot_list) == 0:
+            raise ValueError("No signals to annotate. Try making P-value thresholds less stringent")
+
         if keep_chr_pos:
             columns = ['ID', 'CHR', 'POS', 'P']
         else:
             columns = ['ID', 'P']
 
         columns.extend(extra_cols.values())
-
-        if len(self.annot_list) == 0:
-            self.table_ax.set_visible(False)
-            return
 
         annot_table = pd.concat(self.annot_list, axis=1).transpose()
         annot_table = annot_table.sort_values(by=['#CHROM', 'POS'])
@@ -952,6 +951,9 @@ class ManhattanPlot:
             self.fig.add_artist(cp)
 
     def __plot_table_horizontal(self, rep_genes=[]):
+        if len(self.annot_list) == 0:
+            raise ValueError("No signals to annotate. Try making P-value thresholds less stringent")
+
         annotTable = pd.concat(self.annot_list, axis=1).transpose()
         annotTable = annotTable.sort_values(by=['#CHROM', 'POS'])
         genes = [list(annotTable.index)]
