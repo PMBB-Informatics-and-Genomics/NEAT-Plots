@@ -49,7 +49,7 @@
          <enum>QTabWidget::Rounded</enum>
         </property>
         <property name="currentIndex">
-         <number>1</number>
+         <number>3</number>
         </property>
         <widget class="QWidget" name="tabLoad">
          <attribute name="title">
@@ -143,32 +143,6 @@
               </layout>
              </item>
              <item row="1" column="0">
-              <widget class="QLabel" name="labelTitle">
-               <property name="text">
-                <string>Title</string>
-               </property>
-              </widget>
-             </item>
-             <item row="1" column="1">
-              <widget class="QLineEdit" name="lineDataTitle">
-               <property name="enabled">
-                <bool>true</bool>
-               </property>
-               <property name="font">
-                <font>
-                 <family>Arial</family>
-                 <bold>false</bold>
-                </font>
-               </property>
-               <property name="frame">
-                <bool>true</bool>
-               </property>
-               <property name="clearButtonEnabled">
-                <bool>false</bool>
-               </property>
-              </widget>
-             </item>
-             <item row="2" column="0">
               <widget class="QLabel" name="labelNumRows">
                <property name="toolTip">
                 <string>Number of rows to test</string>
@@ -178,7 +152,7 @@
                </property>
               </widget>
              </item>
-             <item row="2" column="1">
+             <item row="1" column="1">
               <widget class="QSpinBox" name="spinTestRows">
                <property name="maximum">
                 <number>10000000</number>
@@ -191,7 +165,7 @@
                </property>
               </widget>
              </item>
-             <item row="3" column="0">
+             <item row="2" column="0">
               <widget class="QLabel" name="labelFileDelm">
                <property name="toolTip">
                 <string>Delimiter separating columns in data file</string>
@@ -201,7 +175,7 @@
                </property>
               </widget>
              </item>
-             <item row="3" column="1">
+             <item row="2" column="1">
               <widget class="QComboBox" name="bxDelimiter">
                <property name="editable">
                 <bool>true</bool>
@@ -641,234 +615,356 @@
            <number>1</number>
           </property>
           <item>
-           <layout class="QHBoxLayout" name="horizontalLayout_3">
-            <item>
-             <widget class="QPushButton" name="btnPrev3">
-              <property name="maximumSize">
-               <size>
-                <width>120</width>
-                <height>16777215</height>
-               </size>
-              </property>
-              <property name="layoutDirection">
-               <enum>Qt::LeftToRight</enum>
-              </property>
-              <property name="styleSheet">
-               <string notr="true"/>
-              </property>
-              <property name="text">
-               <string>Previous</string>
-              </property>
-             </widget>
-            </item>
-           </layout>
-          </item>
-          <item>
-           <widget class="Line" name="line_4">
-            <property name="orientation">
-             <enum>Qt::Horizontal</enum>
+           <widget class="QScrollArea" name="scrollAreaPlot">
+            <property name="widgetResizable">
+             <bool>true</bool>
             </property>
+            <widget class="QWidget" name="scrollAreaPlotContents">
+             <property name="geometry">
+              <rect>
+               <x>0</x>
+               <y>0</y>
+               <width>371</width>
+               <height>752</height>
+              </rect>
+             </property>
+             <layout class="QVBoxLayout" name="verticalLayoutScrollAreaPlot">
+              <item>
+               <layout class="QHBoxLayout" name="horizontalLayout_3">
+                <item>
+                 <widget class="QPushButton" name="btnPrev3">
+                  <property name="maximumSize">
+                   <size>
+                    <width>120</width>
+                    <height>16777215</height>
+                   </size>
+                  </property>
+                  <property name="layoutDirection">
+                   <enum>Qt::LeftToRight</enum>
+                  </property>
+                  <property name="styleSheet">
+                   <string notr="true"/>
+                  </property>
+                  <property name="text">
+                   <string>Previous</string>
+                  </property>
+                 </widget>
+                </item>
+               </layout>
+              </item>
+              <item>
+               <widget class="Line" name="line_4">
+                <property name="orientation">
+                 <enum>Qt::Horizontal</enum>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QGroupBox" name="groupBoxPval">
+                <property name="maximumSize">
+                 <size>
+                  <width>16777215</width>
+                  <height>150</height>
+                 </size>
+                </property>
+                <property name="title">
+                 <string>P-Value Options</string>
+                </property>
+                <layout class="QFormLayout" name="formLayout">
+                 <item row="0" column="0">
+                  <widget class="QLabel" name="lblSuggestThresh">
+                   <property name="toolTip">
+                    <string>Number of rows to test</string>
+                   </property>
+                   <property name="text">
+                    <string>Suggestive Threshold</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item row="0" column="1">
+                  <widget class="QLineEdit" name="lineSuggestThresh">
+                   <property name="text">
+                    <string>1E-5</string>
+                   </property>
+                   <property name="alignment">
+                    <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+                   </property>
+                  </widget>
+                 </item>
+                 <item row="1" column="0">
+                  <widget class="QLabel" name="lblSigThresh">
+                   <property name="toolTip">
+                    <string>Number of rows to test</string>
+                   </property>
+                   <property name="text">
+                    <string>Significant Threshold</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item row="1" column="1">
+                  <widget class="QLineEdit" name="lineSigThresh">
+                   <property name="text">
+                    <string>5E-8</string>
+                   </property>
+                   <property name="alignment">
+                    <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+                   </property>
+                  </widget>
+                 </item>
+                 <item row="2" column="0">
+                  <widget class="QLabel" name="lblMaxLogP">
+                   <property name="toolTip">
+                    <string>Number of rows to test</string>
+                   </property>
+                   <property name="text">
+                    <string>Max Log P (axis limit)</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item row="2" column="1">
+                  <widget class="QLineEdit" name="lineMaxLogP">
+                   <property name="alignment">
+                    <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+                   </property>
+                  </widget>
+                 </item>
+                </layout>
+               </widget>
+              </item>
+              <item>
+               <widget class="QGroupBox" name="groupBoxSignals">
+                <property name="maximumSize">
+                 <size>
+                  <width>16777215</width>
+                  <height>180</height>
+                 </size>
+                </property>
+                <property name="title">
+                 <string>Signal Choice Options</string>
+                </property>
+                <layout class="QFormLayout" name="formLayout_2">
+                 <item row="0" column="0">
+                  <widget class="QLabel" name="lblLDBlockWidth">
+                   <property name="toolTip">
+                    <string>Number of rows to test</string>
+                   </property>
+                   <property name="text">
+                    <string>LD Block Width</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item row="0" column="1">
+                  <widget class="QLineEdit" name="lineLDLBlockWidth">
+                   <property name="text">
+                    <string>4E5</string>
+                   </property>
+                   <property name="alignment">
+                    <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+                   </property>
+                  </widget>
+                 </item>
+                 <item row="1" column="0">
+                  <widget class="QLabel" name="lblMergeGenes">
+                   <property name="toolTip">
+                    <string>Number of rows to test</string>
+                   </property>
+                   <property name="midLineWidth">
+                    <number>0</number>
+                   </property>
+                   <property name="text">
+                    <string>Merge Genes</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item row="1" column="1">
+                  <widget class="QComboBox" name="bxMergeGenes">
+                   <property name="currentIndex">
+                    <number>1</number>
+                   </property>
+                   <item>
+                    <property name="text">
+                     <string>True</string>
+                    </property>
+                   </item>
+                   <item>
+                    <property name="text">
+                     <string>False</string>
+                    </property>
+                   </item>
+                  </widget>
+                 </item>
+                 <item row="2" column="0">
+                  <widget class="QLabel" name="lblBoostKnown">
+                   <property name="toolTip">
+                    <string>Number of rows to test</string>
+                   </property>
+                   <property name="text">
+                    <string>Boost Known Signals</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item row="2" column="1">
+                  <widget class="QComboBox" name="bxBoostKnown">
+                   <property name="currentText">
+                    <string>True</string>
+                   </property>
+                   <property name="currentIndex">
+                    <number>0</number>
+                   </property>
+                   <item>
+                    <property name="text">
+                     <string>True</string>
+                    </property>
+                   </item>
+                   <item>
+                    <property name="text">
+                     <string>False</string>
+                    </property>
+                   </item>
+                  </widget>
+                 </item>
+                </layout>
+               </widget>
+              </item>
+              <item>
+               <widget class="QGroupBox" name="groupBoxPlotOptions">
+                <property name="title">
+                 <string>Plot Options</string>
+                </property>
+                <layout class="QGridLayout" name="gridLayout">
+                 <item row="3" column="1" colspan="2">
+                  <widget class="QLineEdit" name="lineDataTitle">
+                   <property name="enabled">
+                    <bool>true</bool>
+                   </property>
+                   <property name="font">
+                    <font>
+                     <family>Arial</family>
+                     <bold>false</bold>
+                    </font>
+                   </property>
+                   <property name="frame">
+                    <bool>true</bool>
+                   </property>
+                   <property name="clearButtonEnabled">
+                    <bool>false</bool>
+                   </property>
+                  </widget>
+                 </item>
+                 <item row="0" column="2">
+                  <widget class="QCheckBox" name="chkBoxWithTitle">
+                   <property name="layoutDirection">
+                    <enum>Qt::RightToLeft</enum>
+                   </property>
+                   <property name="text">
+                    <string>With Title</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item row="3" column="0">
+                  <widget class="QLabel" name="labelTitle">
+                   <property name="layoutDirection">
+                    <enum>Qt::LeftToRight</enum>
+                   </property>
+                   <property name="text">
+                    <string>Title</string>
+                   </property>
+                   <property name="alignment">
+                    <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+                   </property>
+                  </widget>
+                 </item>
+                 <item row="0" column="1">
+                  <widget class="QCheckBox" name="chkBoxSignalsOnly">
+                   <property name="layoutDirection">
+                    <enum>Qt::RightToLeft</enum>
+                   </property>
+                   <property name="text">
+                    <string>Signals Only</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item row="0" column="0">
+                  <widget class="QCheckBox" name="chkBoxWithTable">
+                   <property name="layoutDirection">
+                    <enum>Qt::RightToLeft</enum>
+                   </property>
+                   <property name="text">
+                    <string>With Table</string>
+                   </property>
+                   <property name="checked">
+                    <bool>true</bool>
+                   </property>
+                  </widget>
+                 </item>
+                 <item row="1" column="2">
+                  <widget class="QCheckBox" name="chkBoxInvert">
+                   <property name="layoutDirection">
+                    <enum>Qt::RightToLeft</enum>
+                   </property>
+                   <property name="text">
+                    <string>Invert</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item row="1" column="1">
+                  <widget class="QCheckBox" name="chkBoxVertical">
+                   <property name="layoutDirection">
+                    <enum>Qt::RightToLeft</enum>
+                   </property>
+                   <property name="text">
+                    <string>Vertical</string>
+                   </property>
+                   <property name="checked">
+                    <bool>true</bool>
+                   </property>
+                   <property name="tristate">
+                    <bool>false</bool>
+                   </property>
+                  </widget>
+                 </item>
+                </layout>
+               </widget>
+              </item>
+              <item>
+               <layout class="QHBoxLayout" name="horizontalLayout_2">
+                <item>
+                 <widget class="QPushButton" name="btnPlot">
+                  <property name="maximumSize">
+                   <size>
+                    <width>150</width>
+                    <height>16777215</height>
+                   </size>
+                  </property>
+                  <property name="styleSheet">
+                   <string notr="true"/>
+                  </property>
+                  <property name="text">
+                   <string>GENERATE PLOT</string>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QPushButton" name="btnSave">
+                  <property name="maximumSize">
+                   <size>
+                    <width>150</width>
+                    <height>16777215</height>
+                   </size>
+                  </property>
+                  <property name="styleSheet">
+                   <string notr="true"/>
+                  </property>
+                  <property name="text">
+                   <string>SAVE PLOT</string>
+                  </property>
+                 </widget>
+                </item>
+               </layout>
+              </item>
+             </layout>
+            </widget>
            </widget>
-          </item>
-          <item>
-           <widget class="QGroupBox" name="groupBoxPval">
-            <property name="maximumSize">
-             <size>
-              <width>16777215</width>
-              <height>150</height>
-             </size>
-            </property>
-            <property name="title">
-             <string>P-Value Options</string>
-            </property>
-            <layout class="QFormLayout" name="formLayout">
-             <item row="0" column="0">
-              <widget class="QLabel" name="lblSuggestThresh">
-               <property name="toolTip">
-                <string>Number of rows to test</string>
-               </property>
-               <property name="text">
-                <string>Suggestive Threshold</string>
-               </property>
-              </widget>
-             </item>
-             <item row="0" column="1">
-              <widget class="QLineEdit" name="lineSuggestThresh">
-               <property name="text">
-                <string>1E-5</string>
-               </property>
-               <property name="alignment">
-                <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-               </property>
-              </widget>
-             </item>
-             <item row="1" column="0">
-              <widget class="QLabel" name="lblSigThresh">
-               <property name="toolTip">
-                <string>Number of rows to test</string>
-               </property>
-               <property name="text">
-                <string>Significant Threshold</string>
-               </property>
-              </widget>
-             </item>
-             <item row="1" column="1">
-              <widget class="QLineEdit" name="lineSigThresh">
-               <property name="text">
-                <string>5E-8</string>
-               </property>
-               <property name="alignment">
-                <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-               </property>
-              </widget>
-             </item>
-             <item row="2" column="0">
-              <widget class="QLabel" name="lblMaxLogP">
-               <property name="toolTip">
-                <string>Number of rows to test</string>
-               </property>
-               <property name="text">
-                <string>Max Log P (axis limit)</string>
-               </property>
-              </widget>
-             </item>
-             <item row="2" column="1">
-              <widget class="QLineEdit" name="lineMaxLogP">
-               <property name="alignment">
-                <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-               </property>
-              </widget>
-             </item>
-            </layout>
-           </widget>
-          </item>
-          <item>
-           <widget class="QGroupBox" name="groupBoxSignals">
-            <property name="maximumSize">
-             <size>
-              <width>16777215</width>
-              <height>180</height>
-             </size>
-            </property>
-            <property name="title">
-             <string>Signal Choice Options</string>
-            </property>
-            <layout class="QFormLayout" name="formLayout_2">
-             <item row="0" column="0">
-              <widget class="QLabel" name="lblLDBlockWidth">
-               <property name="toolTip">
-                <string>Number of rows to test</string>
-               </property>
-               <property name="text">
-                <string>LD Block Width</string>
-               </property>
-              </widget>
-             </item>
-             <item row="0" column="1">
-              <widget class="QLineEdit" name="lineLDLBlockWidth">
-               <property name="text">
-                <string>4E5</string>
-               </property>
-               <property name="alignment">
-                <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-               </property>
-              </widget>
-             </item>
-             <item row="1" column="0">
-              <widget class="QLabel" name="lblMergeGenes">
-               <property name="toolTip">
-                <string>Number of rows to test</string>
-               </property>
-               <property name="midLineWidth">
-                <number>0</number>
-               </property>
-               <property name="text">
-                <string>Merge Genes</string>
-               </property>
-              </widget>
-             </item>
-             <item row="1" column="1">
-              <widget class="QComboBox" name="bxMergeGenes">
-               <property name="currentIndex">
-                <number>1</number>
-               </property>
-               <item>
-                <property name="text">
-                 <string>True</string>
-                </property>
-               </item>
-               <item>
-                <property name="text">
-                 <string>False</string>
-                </property>
-               </item>
-              </widget>
-             </item>
-             <item row="2" column="0">
-              <widget class="QLabel" name="lblBoostKnown">
-               <property name="toolTip">
-                <string>Number of rows to test</string>
-               </property>
-               <property name="text">
-                <string>Boost Known Signals</string>
-               </property>
-              </widget>
-             </item>
-             <item row="2" column="1">
-              <widget class="QComboBox" name="bxBoostKnown">
-               <property name="currentIndex">
-                <number>1</number>
-               </property>
-               <item>
-                <property name="text">
-                 <string>True</string>
-                </property>
-               </item>
-               <item>
-                <property name="text">
-                 <string>False</string>
-                </property>
-               </item>
-              </widget>
-             </item>
-            </layout>
-           </widget>
-          </item>
-          <item>
-           <layout class="QHBoxLayout" name="horizontalLayout_2">
-            <item>
-             <widget class="QPushButton" name="btnPlot">
-              <property name="maximumSize">
-               <size>
-                <width>150</width>
-                <height>16777215</height>
-               </size>
-              </property>
-              <property name="styleSheet">
-               <string notr="true"/>
-              </property>
-              <property name="text">
-               <string>GENERATE PLOT</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QPushButton" name="btnSave">
-              <property name="maximumSize">
-               <size>
-                <width>150</width>
-                <height>16777215</height>
-               </size>
-              </property>
-              <property name="styleSheet">
-               <string notr="true"/>
-              </property>
-              <property name="text">
-               <string>SAVE PLOT</string>
-              </property>
-             </widget>
-            </item>
-           </layout>
           </item>
          </layout>
         </widget>
@@ -929,6 +1025,49 @@
    </property>
   </action>
  </widget>
+ <tabstops>
+  <tabstop>tabWidget</tabstop>
+  <tabstop>btnNext1</tabstop>
+  <tabstop>lineDataFn</tabstop>
+  <tabstop>btnDataFn</tabstop>
+  <tabstop>btnDataFnLoad</tabstop>
+  <tabstop>spinTestRows</tabstop>
+  <tabstop>bxDelimiter</tabstop>
+  <tabstop>btnPrev1</tabstop>
+  <tabstop>btnNext2</tabstop>
+  <tabstop>bxChromCol</tabstop>
+  <tabstop>bxPosCol</tabstop>
+  <tabstop>bxIDCol</tabstop>
+  <tabstop>bxPvalueCol</tabstop>
+  <tabstop>btnPrev2</tabstop>
+  <tabstop>btnNext3</tabstop>
+  <tabstop>lineAnnotationsFn</tabstop>
+  <tabstop>btnAnnotationsFn</tabstop>
+  <tabstop>btnLoadAnnotFile</tabstop>
+  <tabstop>lineKnownGenesFn</tabstop>
+  <tabstop>btnKnownGenesFn</tabstop>
+  <tabstop>btnLoadKnownGenesFile</tabstop>
+  <tabstop>bxChromAnn</tabstop>
+  <tabstop>bxPosAnn</tabstop>
+  <tabstop>bxIDAnn</tabstop>
+  <tabstop>listOtherAnn</tabstop>
+  <tabstop>scrollAreaPlot</tabstop>
+  <tabstop>btnPrev3</tabstop>
+  <tabstop>lineSuggestThresh</tabstop>
+  <tabstop>lineSigThresh</tabstop>
+  <tabstop>lineMaxLogP</tabstop>
+  <tabstop>lineLDLBlockWidth</tabstop>
+  <tabstop>bxMergeGenes</tabstop>
+  <tabstop>bxBoostKnown</tabstop>
+  <tabstop>chkBoxWithTable</tabstop>
+  <tabstop>chkBoxSignalsOnly</tabstop>
+  <tabstop>chkBoxWithTitle</tabstop>
+  <tabstop>chkBoxVertical</tabstop>
+  <tabstop>chkBoxInvert</tabstop>
+  <tabstop>lineDataTitle</tabstop>
+  <tabstop>btnPlot</tabstop>
+  <tabstop>btnSave</tabstop>
+ </tabstops>
  <resources/>
  <connections/>
 </ui>

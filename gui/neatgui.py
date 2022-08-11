@@ -2,12 +2,14 @@ import sys
 
 from PySide6.QtWidgets import (QApplication, QWidget, QMainWindow, QFileDialog, QSizePolicy, 
    QHBoxLayout, QGroupBox,QFormLayout, QLabel, QLineEdit, QComboBox, QVBoxLayout, 
-   QPushButton, QTableWidget, QListWidget, QCheckBox, QTableWidgetItem, QHeaderView)
-from PySide6.QtCore import Qt
+   QPushButton, QTableWidget, QListWidget, QCheckBox, QTableWidgetItem, QHeaderView, QDialog)
+from PySide6.QtCore import Qt, QObject, QThread, Signal
+from PySide6.QtGui import QMovie
 
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 
 import pandas as pd
+import re
 import manhattan_plot 
 from section import Section
 import matplotlib.pyplot as plt
@@ -30,14 +32,17 @@ class Window(QMainWindow, Ui_MainWindow):
         self.layoutTabPlot.setAlignment(Qt.AlignHCenter | Qt.AlignTop)
         self.layoutTabProcess.setAlignment(Qt.AlignHCenter | Qt.AlignTop)
         self.layoutTabLoad.setAlignment(Qt.AlignHCenter | Qt.AlignTop)
-        self.layoutTabAnnotations.setAlignment(Qt.AlignHCenter | Qt.AlignTop)        
+        self.layoutTabAnnotations.setAlignment(Qt.AlignHCenter | Qt.AlignTop) 
+        self.verticalLayoutScrollAreaPlot.setAlignment(Qt.AlignHCenter | Qt.AlignTop)    
         self.setActiveTab(0)
         self.annotDF = pd.DataFrame()
         self.mp = None
+        self.chkBoxWithTable.setEnabled(False)
 
     def connectSignalsSlots(self):
         self.btnDataFn.clicked.connect(self.selectFile)
-        self.btnDataFnLoad.clicked.connect(self.loadDataFile)
+#         self.btnDataFnLoad.clicked.connect(self.loadDataFile)
+        self.btnDataFnLoad.clicked.connect(self.loadHeaders)
         self.btnAnnotationsFn.clicked.connect(self.selectAnnotFile)
         self.btnLoadAnnotFile.clicked.connect(self.loadAnnotFile)
         #self.btnAddAnnot.clicked.connect(self.addAnnotation)
@@ -48,9 +53,10 @@ class Window(QMainWindow, Ui_MainWindow):
         self.btnPrev1.clicked.connect(self.moveTab1)
         self.btnNext1.clicked.connect(self.moveTab2)
         self.btnPrev2.clicked.connect(self.moveTab2)
-        self.btnNext2.clicked.connect(self.moveTab3)
+        self.btnNext2.clicked.connect(self.moveTab3Forward)
         self.btnPrev3.clicked.connect(self.moveTab3)
         self.btnNext3.clicked.connect(self.moveTab4)
+        self.chkBoxVertical.stateChanged.connect(self.restrictTableOption)
         
         
 #         self.action_Exit.triggered.connect(self.close)
@@ -80,10 +86,16 @@ class Window(QMainWindow, Ui_MainWindow):
         self.tabWidget.setCurrentIndex(2)
         self.setActiveTab(2)
     
+    def moveTab3Forward(self):
+        self.loadDataFile()
+        self.tabWidget.setCurrentIndex(2)
+        self.setActiveTab(2)
+        
+    
     def moveTab4(self):
+        self.addAnnotation()
         self.tabWidget.setCurrentIndex(3)
         self.setActiveTab(3)
-        self.addAnnotation()
         
     def setActiveTab(self, tabIndex):
         num = self.tabWidget.count()
@@ -121,12 +133,22 @@ class Window(QMainWindow, Ui_MainWindow):
         layout.addRow(QLabel("Keep Genomic Pos"),self.chkBoxKeepGenomic)
         self.sectTWAS.setContentLayout(layout)
         
-        self.layoutTabPlot.insertWidget(4,self.sect)
-        self.layoutTabPlot.insertWidget(5,self.sectTWAS)
+#         self.layoutTabPlot.insertWidget(5,self.sect)
+#         self.layoutTabPlot.insertWidget(6 ,self.sectTWAS)
+        
+        self.verticalLayoutScrollAreaPlot.insertWidget(5,self.sect)
+        self.verticalLayoutScrollAreaPlot.insertWidget(6 ,self.sectTWAS)
+        
 
     def selectFile(self):
         fileName = QFileDialog.getOpenFileName(self, "Open File", "./")
         self.lineDataFn.setText(fileName[0])
+    
+    def loadHeaders(self):
+        delimiter=self.getDelim() 
+        with open(self.lineDataFn.text()) as f:
+            self.headers = re.split(delimiter,f.readline())
+        self.setSelectionColumns(self.headers)
     
     def loadDataFile(self):
         nrows = self.spinTestRows.value() if self.spinTestRows.value() > 0 else None
@@ -135,8 +157,25 @@ class Window(QMainWindow, Ui_MainWindow):
         self.mp = manhattan_plot.ManhattanPlot(file_path=self.lineDataFn.text(),
                        title=self.lineDataTitle.text(),
                        test_rows=nrows)
-        self.mp.load_data(delim=delimiter)
-        self.setSelectionColumns(self.mp.df.columns)
+                       
+                       
+        #use thread here
+        self.thread = QThread()
+        self.worker = FileWorker()
+        self.worker.mp = self.mp
+        self.worker.delim = delimiter
+        self.worker.moveToThread(self.thread)
+        self.thread.started.connect(self.worker.loadDataFile)
+        self.worker.finished.connect(self.thread.quit)
+        self.worker.finished.connect(self.worker.deleteLater)
+        self.thread.finished.connect(self.thread.deleteLater)
+        
+        self.dlg = ProcessingDialog(self)
+        self.thread.finished.connect(self.dlg.accept)
+        self.thread.finished.connect(self.dlg.deleteLater)
+        self.thread.start()
+        self.dlg.exec()
+        
     
     # select Annotation file from dialog
     def selectAnnotFile(self):
@@ -186,17 +225,41 @@ class Window(QMainWindow, Ui_MainWindow):
         self.listOtherAnn.addItems(cols)
         
     def addAnnotation(self):
-        self.mp.clean_data(col_map={ self.bxChromCol.currentText() : '#CHROM',
+        addCols = []
+        columnMap = { self.bxChromCol.currentText() : '#CHROM',
                            self.bxPosCol.currentText() : 'POS' ,
                            self.bxPvalueCol.currentText() : 'P',
-                           self.bxIDCol.currentText() : 'ID' })
+                           self.bxIDCol.currentText() : 'ID' }
+
         if not self.annotDF.empty: 
             self.annotDF = self.annotDF.rename(columns={self.bxIDAnn.currentText(): 'ID',
               self.bxChromAnn.currentText(): '#CHROM', self.bxPosAnn.currentText(): 'POS'})
             addCols = [item.text() for item in self.listOtherAnn.selectedItems()]
-            self.mp.add_annotations(self.annotDF, extra_cols=addCols)
-        self.mp.get_thinned_data()
+            #self.mp.add_annotations(self.annotDF, extra_cols=addCols)
+        #self.mp.get_thinned_data()
         
+        self.thread = QThread()
+        self.worker = FileWorker()
+        self.worker.mp = self.mp
+        #self.worker.delim = delimiter
+        self.worker.annotDF = self.annotDF
+        self.worker.columnMap = columnMap
+        self.worker.addCols = addCols
+        self.worker.moveToThread(self.thread)
+        self.thread.started.connect(self.worker.thinData)
+        self.worker.finished.connect(self.thread.quit)
+        self.worker.finished.connect(self.worker.deleteLater)
+        self.thread.finished.connect(self.thread.deleteLater)
+        
+        self.dlg = ProcessingDialog(self, message="Processing Data...")
+        self.thread.finished.connect(self.dlg.accept)
+        self.thread.finished.connect(self.dlg.deleteLater)
+        self.thread.finished.connect(self.fillPlotOptions)
+        self.thread.start()
+        self.dlg.exec()
+        
+        
+    def fillPlotOptions(self):
         self.fillExtraColsTable()
         self.fillNumericList()
         self.fillTWASboxes()
@@ -209,21 +272,25 @@ class Window(QMainWindow, Ui_MainWindow):
         significant = float(self.lineSigThresh.text())
         ldblock = float(self.lineLDLBlockWidth.text())
         merge = self.convertTF(self.bxMergeGenes.currentText())
+        rep_boost = self.convertTF(self.bxBoostKnown.currentText())
         maxLogP = float(self.lineMaxLogP.text()) if self.lineMaxLogP.text() else ''
-
+        inverted = True if self.chkBoxInvert.checkState() == Qt.Checked else False
+        include_title = True if self.chkBoxWithTitle.checkState() == Qt.Checked else False
+        include_table = True if self.chkBoxWithTable.checkState() == Qt.Checked else False
+        signals_only = True if self.chkBoxSignalsOnly.checkState() == Qt.Checked else False
+        vertOrientation = True if self.chkBoxVertical.checkState() == Qt.Checked else False
+        
         twas_color_col=self.comboBxTWASColor.currentText()
         twas_updown_col=self.comboBxTWASDirection.currentText()
         signal_color_col=self.comboBxTWASSignal.currentText()
         
         self.mp.update_plotting_parameters(sug=suggest, annot_thresh=1E-5, sig=significant,
                                       ld_block=ldblock, merge_genes=merge,
-                                      invert=False, twas_color_col=twas_color_col,
-                                      signal_color_col=signal_color_col, twas_updown_col=twas_updown_col)
+                                      invert=inverted, twas_color_col=twas_color_col,
+                                      signal_color_col=signal_color_col, twas_updown_col=twas_updown_col,
+                                      title=self.lineDataTitle.text(), vertical=vertOrientation)
                                       
-        # below taken from manhattan_plot full_plot method
-        with_table=True
         rep_genes=self.known_genes
-        rep_boost=True
         
         extra_cols=self.selectedExtraCols()
         addCols = [item.text() for item in self.listOtherAnn.selectedItems()]
@@ -234,10 +301,14 @@ class Window(QMainWindow, Ui_MainWindow):
             keep_chr_pos = True
         else:
             keep_chr_pos = False
-        with_title=True
         
-        self.mp.full_plot(extra_cols=extra_cols, number_cols=number_cols, rep_genes=rep_genes, keep_chr_pos=keep_chr_pos,
-          with_table=with_table, rep_boost=rep_boost, with_title=with_title)
+        if self.chkBoxSignalsOnly.checkState() == Qt.Unchecked:
+            self.mp.full_plot(extra_cols=extra_cols, number_cols=number_cols, rep_genes=rep_genes, keep_chr_pos=keep_chr_pos,
+              with_table=include_table, rep_boost=rep_boost, with_title=include_title)
+        else:
+            self.mp.signal_plot(extra_cols=extra_cols, number_cols=number_cols, rep_genes=rep_genes, keep_chr_pos=keep_chr_pos,
+              with_table=include_table, rep_boost=rep_boost, with_title=include_title)
+
         
         self.horizontalLayoutCentral.itemAt(1).widget().deleteLater()
         self.canvasPlot = PlotCanvas(self,self.mp.fig)
@@ -309,6 +380,38 @@ class Window(QMainWindow, Ui_MainWindow):
        self.comboBxTWASDirection.addItems(cols)
        self.comboBxTWASSignal.clear()
        self.comboBxTWASSignal.addItems(cols)
+       
+    # when vertical option set, the with table checkbox must be set also
+    def restrictTableOption(self):
+        if self.chkBoxVertical.checkState() == Qt.Checked:
+            self.chkBoxWithTable.setCheckState(Qt.Checked)
+            self.chkBoxWithTable.setEnabled(False)
+        else:
+            self.chkBoxWithTable.setEnabled(True)
+    
+
+class ProcessingDialog(QDialog):
+    def __init__(self, parent=None, message="Loading File..."):
+        super().__init__(parent)
+
+        self.setWindowTitle("Please wait")
+        self.layout = QVBoxLayout()
+        self.layout.setAlignment(Qt.AlignHCenter)
+        hlayout = QHBoxLayout()
+        hlayout.setAlignment(Qt.AlignHCenter)
+        message = QLabel(message)
+        hlayout.addWidget(message)
+        #self.layout.addWidget(message)
+        self.layout.addLayout(hlayout)
+        self.movie = QMovie("resources/loading.gif", parent=self)
+        movielabel = QLabel(self)
+        movielabel.setMovie(self.movie)
+        self.layout.addWidget(movielabel)
+        self.movie.start()
+        
+        
+        self.setLayout(self.layout)
+        self.resize(200,200)
 
 
 # For display of plots    
@@ -324,6 +427,27 @@ class PlotCanvas(FigureCanvas):
     
     def plot(self):
         self.draw()
+        
+# For using separate thread on long-running tasks
+class FileWorker(QObject):
+    finished = Signal()
+    mp = None
+    delim = "\s+"
+    annotDF = pd.DataFrame()
+    columnMap = {}
+    plotParams={}
+    canvasPlot=None
+    
+    def loadDataFile(self):
+        self.mp.load_data(delim=self.delim)    
+        self.finished.emit()
+    
+    def thinData(self):
+        self.mp.clean_data(col_map=self.columnMap)
+        if not self.annotDF.empty: 
+            self.mp.add_annotations(self.annotDF, extra_cols=self.addCols)
+        self.mp.get_thinned_data()
+        self.finished.emit()
 
 
 

@@ -16,12 +16,12 @@ from PySide6.QtGui import (QAction, QBrush, QColor, QConicalGradient,
     QIcon, QImage, QKeySequence, QLinearGradient,
     QPainter, QPalette, QPixmap, QRadialGradient,
     QTransform)
-from PySide6.QtWidgets import (QAbstractItemView, QApplication, QComboBox, QFormLayout,
-    QFrame, QGroupBox, QHBoxLayout, QLabel,
-    QLineEdit, QListWidget, QListWidgetItem, QMainWindow,
-    QMenu, QMenuBar, QPushButton, QSizePolicy,
-    QSpinBox, QStatusBar, QTabWidget, QVBoxLayout,
-    QWidget)
+from PySide6.QtWidgets import (QAbstractItemView, QApplication, QCheckBox, QComboBox,
+    QFormLayout, QFrame, QGridLayout, QGroupBox,
+    QHBoxLayout, QLabel, QLineEdit, QListWidget,
+    QListWidgetItem, QMainWindow, QMenu, QMenuBar,
+    QPushButton, QScrollArea, QSizePolicy, QSpinBox,
+    QStatusBar, QTabWidget, QVBoxLayout, QWidget)
 
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
@@ -108,24 +108,10 @@ class Ui_MainWindow(object):
 
         self.formLayout_4.setLayout(0, QFormLayout.FieldRole, self.verticalLayout_2)
 
-        self.labelTitle = QLabel(self.groupBoxLoadData)
-        self.labelTitle.setObjectName(u"labelTitle")
-
-        self.formLayout_4.setWidget(1, QFormLayout.LabelRole, self.labelTitle)
-
-        self.lineDataTitle = QLineEdit(self.groupBoxLoadData)
-        self.lineDataTitle.setObjectName(u"lineDataTitle")
-        self.lineDataTitle.setEnabled(True)
-        self.lineDataTitle.setFont(font1)
-        self.lineDataTitle.setFrame(True)
-        self.lineDataTitle.setClearButtonEnabled(False)
-
-        self.formLayout_4.setWidget(1, QFormLayout.FieldRole, self.lineDataTitle)
-
         self.labelNumRows = QLabel(self.groupBoxLoadData)
         self.labelNumRows.setObjectName(u"labelNumRows")
 
-        self.formLayout_4.setWidget(2, QFormLayout.LabelRole, self.labelNumRows)
+        self.formLayout_4.setWidget(1, QFormLayout.LabelRole, self.labelNumRows)
 
         self.spinTestRows = QSpinBox(self.groupBoxLoadData)
         self.spinTestRows.setObjectName(u"spinTestRows")
@@ -133,12 +119,12 @@ class Ui_MainWindow(object):
         self.spinTestRows.setSingleStep(100)
         self.spinTestRows.setValue(100000)
 
-        self.formLayout_4.setWidget(2, QFormLayout.FieldRole, self.spinTestRows)
+        self.formLayout_4.setWidget(1, QFormLayout.FieldRole, self.spinTestRows)
 
         self.labelFileDelm = QLabel(self.groupBoxLoadData)
         self.labelFileDelm.setObjectName(u"labelFileDelm")
 
-        self.formLayout_4.setWidget(3, QFormLayout.LabelRole, self.labelFileDelm)
+        self.formLayout_4.setWidget(2, QFormLayout.LabelRole, self.labelFileDelm)
 
         self.bxDelimiter = QComboBox(self.groupBoxLoadData)
         self.bxDelimiter.addItem("")
@@ -149,7 +135,7 @@ class Ui_MainWindow(object):
         self.bxDelimiter.setObjectName(u"bxDelimiter")
         self.bxDelimiter.setEditable(True)
 
-        self.formLayout_4.setWidget(3, QFormLayout.FieldRole, self.bxDelimiter)
+        self.formLayout_4.setWidget(2, QFormLayout.FieldRole, self.bxDelimiter)
 
 
         self.layoutTabLoad.addWidget(self.groupBoxLoadData)
@@ -404,9 +390,17 @@ class Ui_MainWindow(object):
 #endif
         self.layoutTabPlot.setObjectName(u"layoutTabPlot")
         self.layoutTabPlot.setContentsMargins(-1, -1, 1, -1)
+        self.scrollAreaPlot = QScrollArea(self.tabPlot)
+        self.scrollAreaPlot.setObjectName(u"scrollAreaPlot")
+        self.scrollAreaPlot.setWidgetResizable(True)
+        self.scrollAreaPlotContents = QWidget()
+        self.scrollAreaPlotContents.setObjectName(u"scrollAreaPlotContents")
+        self.scrollAreaPlotContents.setGeometry(QRect(0, 0, 371, 752))
+        self.verticalLayoutScrollAreaPlot = QVBoxLayout(self.scrollAreaPlotContents)
+        self.verticalLayoutScrollAreaPlot.setObjectName(u"verticalLayoutScrollAreaPlot")
         self.horizontalLayout_3 = QHBoxLayout()
         self.horizontalLayout_3.setObjectName(u"horizontalLayout_3")
-        self.btnPrev3 = QPushButton(self.tabPlot)
+        self.btnPrev3 = QPushButton(self.scrollAreaPlotContents)
         self.btnPrev3.setObjectName(u"btnPrev3")
         self.btnPrev3.setMaximumSize(QSize(120, 16777215))
         self.btnPrev3.setLayoutDirection(Qt.LeftToRight)
@@ -415,16 +409,16 @@ class Ui_MainWindow(object):
         self.horizontalLayout_3.addWidget(self.btnPrev3)
 
 
-        self.layoutTabPlot.addLayout(self.horizontalLayout_3)
+        self.verticalLayoutScrollAreaPlot.addLayout(self.horizontalLayout_3)
 
-        self.line_4 = QFrame(self.tabPlot)
+        self.line_4 = QFrame(self.scrollAreaPlotContents)
         self.line_4.setObjectName(u"line_4")
         self.line_4.setFrameShape(QFrame.HLine)
         self.line_4.setFrameShadow(QFrame.Sunken)
 
-        self.layoutTabPlot.addWidget(self.line_4)
+        self.verticalLayoutScrollAreaPlot.addWidget(self.line_4)
 
-        self.groupBoxPval = QGroupBox(self.tabPlot)
+        self.groupBoxPval = QGroupBox(self.scrollAreaPlotContents)
         self.groupBoxPval.setObjectName(u"groupBoxPval")
         self.groupBoxPval.setMaximumSize(QSize(16777215, 150))
         self.formLayout = QFormLayout(self.groupBoxPval)
@@ -463,9 +457,9 @@ class Ui_MainWindow(object):
         self.formLayout.setWidget(2, QFormLayout.FieldRole, self.lineMaxLogP)
 
 
-        self.layoutTabPlot.addWidget(self.groupBoxPval)
+        self.verticalLayoutScrollAreaPlot.addWidget(self.groupBoxPval)
 
-        self.groupBoxSignals = QGroupBox(self.tabPlot)
+        self.groupBoxSignals = QGroupBox(self.scrollAreaPlotContents)
         self.groupBoxSignals.setObjectName(u"groupBoxSignals")
         self.groupBoxSignals.setMaximumSize(QSize(16777215, 180))
         self.formLayout_2 = QFormLayout(self.groupBoxSignals)
@@ -507,18 +501,74 @@ class Ui_MainWindow(object):
         self.formLayout_2.setWidget(2, QFormLayout.FieldRole, self.bxBoostKnown)
 
 
-        self.layoutTabPlot.addWidget(self.groupBoxSignals)
+        self.verticalLayoutScrollAreaPlot.addWidget(self.groupBoxSignals)
+
+        self.groupBoxPlotOptions = QGroupBox(self.scrollAreaPlotContents)
+        self.groupBoxPlotOptions.setObjectName(u"groupBoxPlotOptions")
+        self.gridLayout = QGridLayout(self.groupBoxPlotOptions)
+        self.gridLayout.setObjectName(u"gridLayout")
+        self.lineDataTitle = QLineEdit(self.groupBoxPlotOptions)
+        self.lineDataTitle.setObjectName(u"lineDataTitle")
+        self.lineDataTitle.setEnabled(True)
+        self.lineDataTitle.setFont(font1)
+        self.lineDataTitle.setFrame(True)
+        self.lineDataTitle.setClearButtonEnabled(False)
+
+        self.gridLayout.addWidget(self.lineDataTitle, 3, 1, 1, 2)
+
+        self.chkBoxWithTitle = QCheckBox(self.groupBoxPlotOptions)
+        self.chkBoxWithTitle.setObjectName(u"chkBoxWithTitle")
+        self.chkBoxWithTitle.setLayoutDirection(Qt.RightToLeft)
+
+        self.gridLayout.addWidget(self.chkBoxWithTitle, 0, 2, 1, 1)
+
+        self.labelTitle = QLabel(self.groupBoxPlotOptions)
+        self.labelTitle.setObjectName(u"labelTitle")
+        self.labelTitle.setLayoutDirection(Qt.LeftToRight)
+        self.labelTitle.setAlignment(Qt.AlignRight|Qt.AlignTrailing|Qt.AlignVCenter)
+
+        self.gridLayout.addWidget(self.labelTitle, 3, 0, 1, 1)
+
+        self.chkBoxSignalsOnly = QCheckBox(self.groupBoxPlotOptions)
+        self.chkBoxSignalsOnly.setObjectName(u"chkBoxSignalsOnly")
+        self.chkBoxSignalsOnly.setLayoutDirection(Qt.RightToLeft)
+
+        self.gridLayout.addWidget(self.chkBoxSignalsOnly, 0, 1, 1, 1)
+
+        self.chkBoxWithTable = QCheckBox(self.groupBoxPlotOptions)
+        self.chkBoxWithTable.setObjectName(u"chkBoxWithTable")
+        self.chkBoxWithTable.setLayoutDirection(Qt.RightToLeft)
+        self.chkBoxWithTable.setChecked(True)
+
+        self.gridLayout.addWidget(self.chkBoxWithTable, 0, 0, 1, 1)
+
+        self.chkBoxInvert = QCheckBox(self.groupBoxPlotOptions)
+        self.chkBoxInvert.setObjectName(u"chkBoxInvert")
+        self.chkBoxInvert.setLayoutDirection(Qt.RightToLeft)
+
+        self.gridLayout.addWidget(self.chkBoxInvert, 1, 2, 1, 1)
+
+        self.chkBoxVertical = QCheckBox(self.groupBoxPlotOptions)
+        self.chkBoxVertical.setObjectName(u"chkBoxVertical")
+        self.chkBoxVertical.setLayoutDirection(Qt.RightToLeft)
+        self.chkBoxVertical.setChecked(True)
+        self.chkBoxVertical.setTristate(False)
+
+        self.gridLayout.addWidget(self.chkBoxVertical, 1, 1, 1, 1)
+
+
+        self.verticalLayoutScrollAreaPlot.addWidget(self.groupBoxPlotOptions)
 
         self.horizontalLayout_2 = QHBoxLayout()
         self.horizontalLayout_2.setObjectName(u"horizontalLayout_2")
-        self.btnPlot = QPushButton(self.tabPlot)
+        self.btnPlot = QPushButton(self.scrollAreaPlotContents)
         self.btnPlot.setObjectName(u"btnPlot")
         self.btnPlot.setMaximumSize(QSize(150, 16777215))
         self.btnPlot.setStyleSheet(u"")
 
         self.horizontalLayout_2.addWidget(self.btnPlot)
 
-        self.btnSave = QPushButton(self.tabPlot)
+        self.btnSave = QPushButton(self.scrollAreaPlotContents)
         self.btnSave.setObjectName(u"btnSave")
         self.btnSave.setMaximumSize(QSize(150, 16777215))
         self.btnSave.setStyleSheet(u"")
@@ -526,7 +576,11 @@ class Ui_MainWindow(object):
         self.horizontalLayout_2.addWidget(self.btnSave)
 
 
-        self.layoutTabPlot.addLayout(self.horizontalLayout_2)
+        self.verticalLayoutScrollAreaPlot.addLayout(self.horizontalLayout_2)
+
+        self.scrollAreaPlot.setWidget(self.scrollAreaPlotContents)
+
+        self.layoutTabPlot.addWidget(self.scrollAreaPlot)
 
         self.tabWidget.addTab(self.tabPlot, "")
 
@@ -555,6 +609,46 @@ class Ui_MainWindow(object):
         self.statusbar = QStatusBar(MainWindow)
         self.statusbar.setObjectName(u"statusbar")
         MainWindow.setStatusBar(self.statusbar)
+        QWidget.setTabOrder(self.tabWidget, self.btnNext1)
+        QWidget.setTabOrder(self.btnNext1, self.lineDataFn)
+        QWidget.setTabOrder(self.lineDataFn, self.btnDataFn)
+        QWidget.setTabOrder(self.btnDataFn, self.btnDataFnLoad)
+        QWidget.setTabOrder(self.btnDataFnLoad, self.spinTestRows)
+        QWidget.setTabOrder(self.spinTestRows, self.bxDelimiter)
+        QWidget.setTabOrder(self.bxDelimiter, self.btnPrev1)
+        QWidget.setTabOrder(self.btnPrev1, self.btnNext2)
+        QWidget.setTabOrder(self.btnNext2, self.bxChromCol)
+        QWidget.setTabOrder(self.bxChromCol, self.bxPosCol)
+        QWidget.setTabOrder(self.bxPosCol, self.bxIDCol)
+        QWidget.setTabOrder(self.bxIDCol, self.bxPvalueCol)
+        QWidget.setTabOrder(self.bxPvalueCol, self.btnPrev2)
+        QWidget.setTabOrder(self.btnPrev2, self.btnNext3)
+        QWidget.setTabOrder(self.btnNext3, self.lineAnnotationsFn)
+        QWidget.setTabOrder(self.lineAnnotationsFn, self.btnAnnotationsFn)
+        QWidget.setTabOrder(self.btnAnnotationsFn, self.btnLoadAnnotFile)
+        QWidget.setTabOrder(self.btnLoadAnnotFile, self.lineKnownGenesFn)
+        QWidget.setTabOrder(self.lineKnownGenesFn, self.btnKnownGenesFn)
+        QWidget.setTabOrder(self.btnKnownGenesFn, self.btnLoadKnownGenesFile)
+        QWidget.setTabOrder(self.btnLoadKnownGenesFile, self.bxChromAnn)
+        QWidget.setTabOrder(self.bxChromAnn, self.bxPosAnn)
+        QWidget.setTabOrder(self.bxPosAnn, self.bxIDAnn)
+        QWidget.setTabOrder(self.bxIDAnn, self.listOtherAnn)
+        QWidget.setTabOrder(self.listOtherAnn, self.scrollAreaPlot)
+        QWidget.setTabOrder(self.scrollAreaPlot, self.btnPrev3)
+        QWidget.setTabOrder(self.btnPrev3, self.lineSuggestThresh)
+        QWidget.setTabOrder(self.lineSuggestThresh, self.lineSigThresh)
+        QWidget.setTabOrder(self.lineSigThresh, self.lineMaxLogP)
+        QWidget.setTabOrder(self.lineMaxLogP, self.lineLDLBlockWidth)
+        QWidget.setTabOrder(self.lineLDLBlockWidth, self.bxMergeGenes)
+        QWidget.setTabOrder(self.bxMergeGenes, self.bxBoostKnown)
+        QWidget.setTabOrder(self.bxBoostKnown, self.chkBoxWithTable)
+        QWidget.setTabOrder(self.chkBoxWithTable, self.chkBoxSignalsOnly)
+        QWidget.setTabOrder(self.chkBoxSignalsOnly, self.chkBoxWithTitle)
+        QWidget.setTabOrder(self.chkBoxWithTitle, self.chkBoxVertical)
+        QWidget.setTabOrder(self.chkBoxVertical, self.chkBoxInvert)
+        QWidget.setTabOrder(self.chkBoxInvert, self.lineDataTitle)
+        QWidget.setTabOrder(self.lineDataTitle, self.btnPlot)
+        QWidget.setTabOrder(self.btnPlot, self.btnSave)
 
         self.menubar.addAction(self.menuFile.menuAction())
         self.menubar.addAction(self.menuAbout.menuAction())
@@ -563,10 +657,10 @@ class Ui_MainWindow(object):
 
         self.retranslateUi(MainWindow)
 
-        self.tabWidget.setCurrentIndex(1)
+        self.tabWidget.setCurrentIndex(3)
         self.bxDelimiter.setCurrentIndex(0)
         self.bxMergeGenes.setCurrentIndex(1)
-        self.bxBoostKnown.setCurrentIndex(1)
+        self.bxBoostKnown.setCurrentIndex(0)
 
 
         QMetaObject.connectSlotsByName(MainWindow)
@@ -581,7 +675,6 @@ class Ui_MainWindow(object):
         self.labelDataFn.setText(QCoreApplication.translate("MainWindow", u"Data file", None))
         self.btnDataFn.setText(QCoreApplication.translate("MainWindow", u"...", None))
         self.btnDataFnLoad.setText(QCoreApplication.translate("MainWindow", u"Load", None))
-        self.labelTitle.setText(QCoreApplication.translate("MainWindow", u"Title", None))
 #if QT_CONFIG(tooltip)
         self.labelNumRows.setToolTip(QCoreApplication.translate("MainWindow", u"Number of rows to test", None))
 #endif // QT_CONFIG(tooltip)
@@ -683,6 +776,14 @@ class Ui_MainWindow(object):
         self.bxBoostKnown.setItemText(0, QCoreApplication.translate("MainWindow", u"True", None))
         self.bxBoostKnown.setItemText(1, QCoreApplication.translate("MainWindow", u"False", None))
 
+        self.bxBoostKnown.setCurrentText(QCoreApplication.translate("MainWindow", u"True", None))
+        self.groupBoxPlotOptions.setTitle(QCoreApplication.translate("MainWindow", u"Plot Options", None))
+        self.chkBoxWithTitle.setText(QCoreApplication.translate("MainWindow", u"With Title", None))
+        self.labelTitle.setText(QCoreApplication.translate("MainWindow", u"Title", None))
+        self.chkBoxSignalsOnly.setText(QCoreApplication.translate("MainWindow", u"Signals Only", None))
+        self.chkBoxWithTable.setText(QCoreApplication.translate("MainWindow", u"With Table", None))
+        self.chkBoxInvert.setText(QCoreApplication.translate("MainWindow", u"Invert", None))
+        self.chkBoxVertical.setText(QCoreApplication.translate("MainWindow", u"Vertical", None))
         self.btnPlot.setText(QCoreApplication.translate("MainWindow", u"GENERATE PLOT", None))
         self.btnSave.setText(QCoreApplication.translate("MainWindow", u"SAVE PLOT", None))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.tabPlot), QCoreApplication.translate("MainWindow", u"Plot", None))
