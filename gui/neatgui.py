@@ -2,11 +2,15 @@ import sys
 
 from PySide6.QtWidgets import (QApplication, QWidget, QMainWindow, QFileDialog, QSizePolicy, 
    QHBoxLayout, QGroupBox,QFormLayout, QLabel, QLineEdit, QComboBox, QVBoxLayout, 
-   QPushButton, QTableWidget, QListWidget, QCheckBox, QTableWidgetItem, QHeaderView, QDialog)
+   QPushButton, QTableWidget, QListWidget, QCheckBox, QTableWidgetItem, QHeaderView, 
+   QDialog, QApplication, QMessageBox)
 from PySide6.QtCore import Qt, QObject, QThread, Signal
 from PySide6.QtGui import QMovie
 
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
+
+#/Users/sdudek/lab/learning/python/NEAT-Plots/manhattan-plot
+sys.path.insert(1, '../../NEAT-Plots/manhattan-plot')
 
 import pandas as pd
 import re
@@ -28,6 +32,7 @@ class Window(QMainWindow, Ui_MainWindow):
             '|' : '|'
             }
         self.known_genes = []
+        self.canvasPlot = None
         
         self.layoutTabPlot.setAlignment(Qt.AlignHCenter | Qt.AlignTop)
         self.layoutTabProcess.setAlignment(Qt.AlignHCenter | Qt.AlignTop)
@@ -38,6 +43,7 @@ class Window(QMainWindow, Ui_MainWindow):
         self.annotDF = pd.DataFrame()
         self.mp = None
         self.chkBoxWithTable.setEnabled(False)
+        self.progressBarBlue.setVisible(False)
 
     def connectSignalsSlots(self):
         self.btnDataFn.clicked.connect(self.selectFile)
@@ -57,22 +63,15 @@ class Window(QMainWindow, Ui_MainWindow):
         self.btnPrev3.clicked.connect(self.moveTab3)
         self.btnNext3.clicked.connect(self.moveTab4)
         self.chkBoxVertical.stateChanged.connect(self.restrictTableOption)
-        
-        
-#         self.action_Exit.triggered.connect(self.close)
-#         self.action_Find_Replace.triggered.connect(self.findAndReplace)
-#         self.action_About.triggered.connect(self.about)
+        self.actionExit.triggered.connect(self.close)
+        self.actionInformation.triggered.connect(self.about)
 # 
-# 
-#     def about(self):
-#         QMessageBox.about(
-#             self,
-#             "About Sample Editor",
-#             "<p>A sample text editor app built with:</p>"
-#             "<p>- PyQt</p>"
-#             "<p>- Qt Designer</p>"
-#             "<p>- Python</p>",
-#         )
+    def about(self):
+        QMessageBox.about(
+            self,
+            "NEAT",
+            "<p>A graphical user iterface for Lindsay Guare's Python plotting ibrary</p>",
+        )
 
     def moveTab1(self):
         self.tabWidget.setCurrentIndex(0)
@@ -264,8 +263,20 @@ class Window(QMainWindow, Ui_MainWindow):
         self.fillNumericList()
         self.fillTWASboxes()
 
+    def updateProgress(self, progValue=0):
+        self.progressBarBlue.setValue(progValue)
+        QApplication.processEvents() 
+        
     # draw image on canvas
     def plotImage(self):
+#         self.horizontalLayoutCentral.itemAt(1).widget().deleteLater()
+        if self.canvasPlot is not None:
+            self.canvasPlot.setVisible(False)
+            self.canvasPlot.deleteLater()
+        progValue=0
+        self.progressBarBlue.setVisible(True)
+        self.updateProgress(0)
+ 
         # close any open plots to prevent memory leak in matplotlib
         plt.close('all') 
         suggest = float(self.lineSuggestThresh.text())
@@ -289,7 +300,7 @@ class Window(QMainWindow, Ui_MainWindow):
                                       invert=inverted, twas_color_col=twas_color_col,
                                       signal_color_col=signal_color_col, twas_updown_col=twas_updown_col,
                                       title=self.lineDataTitle.text(), vertical=vertOrientation)
-                                      
+        self.updateProgress(25)
         rep_genes=self.known_genes
         
         extra_cols=self.selectedExtraCols()
@@ -308,12 +319,15 @@ class Window(QMainWindow, Ui_MainWindow):
         else:
             self.mp.signal_plot(extra_cols=extra_cols, number_cols=number_cols, rep_genes=rep_genes, keep_chr_pos=keep_chr_pos,
               with_table=include_table, rep_boost=rep_boost, with_title=include_title)
-
+        self.updateProgress(75)
         
-        self.horizontalLayoutCentral.itemAt(1).widget().deleteLater()
+#         self.horizontalLayoutCentral.itemAt(1).widget().deleteLater()
         self.canvasPlot = PlotCanvas(self,self.mp.fig)
-        self.horizontalLayoutCentral.addWidget(self.canvasPlot)
+#         self.horizontalLayoutCentral.addWidget(self.canvasPlot)
+        self.horizontalLayoutCentral.insertWidget(1,self.canvasPlot)
         self.canvasPlot.plot()
+        
+        self.progressBarBlue.setVisible(False)
 
     def convertTF(self, text):
         tf = True if text == 'True' else False
@@ -453,6 +467,7 @@ class FileWorker(QObject):
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
+    QApplication.setAttribute(Qt.AA_DontUseNativeMenuBar);
     win = Window()
     win.show()
     sys.exit(app.exec())

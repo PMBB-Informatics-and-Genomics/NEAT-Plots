@@ -20,8 +20,9 @@ from PySide6.QtWidgets import (QAbstractItemView, QApplication, QCheckBox, QComb
     QFormLayout, QFrame, QGridLayout, QGroupBox,
     QHBoxLayout, QLabel, QLineEdit, QListWidget,
     QListWidgetItem, QMainWindow, QMenu, QMenuBar,
-    QPushButton, QScrollArea, QSizePolicy, QSpinBox,
-    QStatusBar, QTabWidget, QVBoxLayout, QWidget)
+    QProgressBar, QPushButton, QScrollArea, QSizePolicy,
+    QSpinBox, QStatusBar, QTabWidget, QVBoxLayout,
+    QWidget)
 
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
@@ -29,8 +30,8 @@ class Ui_MainWindow(object):
             MainWindow.setObjectName(u"MainWindow")
         MainWindow.resize(1135, 891)
         MainWindow.setMinimumSize(QSize(0, 0))
-        self.actionOpen = QAction(MainWindow)
-        self.actionOpen.setObjectName(u"actionOpen")
+        self.actionExit = QAction(MainWindow)
+        self.actionExit.setObjectName(u"actionExit")
         self.actionInformation = QAction(MainWindow)
         self.actionInformation.setObjectName(u"actionInformation")
         self.centralwidget = QWidget(MainWindow)
@@ -588,9 +589,30 @@ class Ui_MainWindow(object):
 
         self.framePlot = QFrame(self.centralwidget)
         self.framePlot.setObjectName(u"framePlot")
+        self.framePlot.setMaximumSize(QSize(16777215, 16777215))
         self.framePlot.setFont(font)
         self.framePlot.setFrameShape(QFrame.StyledPanel)
         self.framePlot.setFrameShadow(QFrame.Raised)
+        self.horizontalLayout_7 = QHBoxLayout(self.framePlot)
+        self.horizontalLayout_7.setObjectName(u"horizontalLayout_7")
+        self.progressBarBlue = QProgressBar(self.framePlot)
+        self.progressBarBlue.setObjectName(u"progressBarBlue")
+        self.progressBarBlue.setMinimumSize(QSize(300, 80))
+        self.progressBarBlue.setMaximumSize(QSize(300, 80))
+        self.progressBarBlue.setStyleSheet(u"#progressBarBlue {\n"
+"    border: 2px solid #2196F3;\n"
+"    border-radius: 5px;\n"
+"    background-color: #E0E0E0;\n"
+"}\n"
+"#progressBarBlue::chunk {\n"
+"    background-color: #2196F3;\n"
+"    width: 10px; \n"
+"    margin: 0.5px;\n"
+"}")
+        self.progressBarBlue.setValue(1)
+
+        self.horizontalLayout_7.addWidget(self.progressBarBlue)
+
 
         self.horizontalLayoutCentral.addWidget(self.framePlot)
 
@@ -652,7 +674,7 @@ class Ui_MainWindow(object):
 
         self.menubar.addAction(self.menuFile.menuAction())
         self.menubar.addAction(self.menuAbout.menuAction())
-        self.menuFile.addAction(self.actionOpen)
+        self.menuFile.addAction(self.actionExit)
         self.menuAbout.addAction(self.actionInformation)
 
         self.retranslateUi(MainWindow)
@@ -668,7 +690,7 @@ class Ui_MainWindow(object):
 
     def retranslateUi(self, MainWindow):
         MainWindow.setWindowTitle(QCoreApplication.translate("MainWindow", u"NEAT", None))
-        self.actionOpen.setText(QCoreApplication.translate("MainWindow", u"&Open", None))
+        self.actionExit.setText(QCoreApplication.translate("MainWindow", u"&Exit", None))
         self.actionInformation.setText(QCoreApplication.translate("MainWindow", u"Information", None))
         self.btnNext1.setText(QCoreApplication.translate("MainWindow", u"Next", None))
         self.groupBoxLoadData.setTitle(QCoreApplication.translate("MainWindow", u"Input Data", None))
