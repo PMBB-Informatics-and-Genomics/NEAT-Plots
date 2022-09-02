@@ -512,13 +512,14 @@ class ManhattanPlot:
         for x in x_map.values:
             self.base_ax.axvline(x, c='silver', zorder=0)
 
-        unique_traits = list(self.df['TRAIT'].unique())
+        unique_traits = list(self.df['TRAIT'].dropna().unique())
         categories = sorted(unique_traits)
         cat_to_num = dict(zip(categories, np.arange(len(categories))))
-        cat_num_list = [cat_to_num[t] for t in self.df['TRAIT']]
+        cat_num_list = [cat_to_num[t] for t in self.df['TRAIT'].dropna()]
 
         self.fig.set_facecolor('w')
-        scat = self.base_ax.scatter(x_map.loc[self.df['ID']], -np.log10(self.df['P']),
+        scat = self.base_ax.scatter(x=x_map.loc[self.df.dropna(subset='TRAIT')['ID']],
+                                    y=-np.log10(self.df.dropna(subset='TRAIT')['P']),
                                     c=cat_num_list,
                                     cmap=plt.cm.get_cmap(COLOR_MAP, len(categories)),
                                     s=60, zorder=10)
@@ -526,6 +527,7 @@ class ManhattanPlot:
         self.base_ax.set_xticklabels(x_map.index, rotation=30, ha='right')
         self.base_ax.set_xlabel('Search Identifiers')
         self.base_ax.set_ylabel('-Log10 P Value (Reported)')
+        self.base_ax.set_ylim(0, self.max_log_p)
         print(categories, cat_to_num, unique_traits)
         self.__add_color_bar(scat, categories)
 
