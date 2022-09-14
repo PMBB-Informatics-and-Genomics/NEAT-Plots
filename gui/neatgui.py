@@ -416,8 +416,9 @@ class Window(QMainWindow, Ui_MainWindow):
                   with_table=include_table, rep_boost=rep_boost, with_title=include_title)
             self.updateProgress(75)
             
+            self.mp.fig.dpi=70
             self.canvasPlot = PlotCanvas(self,self.mp.fig)
-            self.horizontalLayoutCentral.insertWidget(1,self.canvasPlot)
+            self.horizontalLayoutFrame.insertWidget(1,self.canvasPlot)
             self.canvasPlot.plot()
         except Exception as ex:
             traceback_str = ''.join(traceback.format_tb(ex.__traceback__))
