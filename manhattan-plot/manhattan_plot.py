@@ -90,12 +90,25 @@ class ManhattanPlot:
         self.test_rows = test_rows
 
     def config_colors(self, color_file_json):
+        """
+        Configures the manhattan plot's color palette as specified by user.
+        chromosome color keys: DARK_CHR_COLOR, LIGHT_CHR_COLOR
+        novel hit color keys: NOVEL_HIT_COLOR, NOVEL_HIT_TABLE_COLOR
+        replicated hit color keys: REP_HIT_COLOR, REP_TABLE_COLOR
+        additional color in the palette: FIFTH_COLOR (used for threshold line)
+        table color keys: TABLE_HEAD_COLOR
+        set color map from matplotlib for colors bars: COLOR_MAP
+        :param color_file_json: str
+        """
         color_config_dict = json.load(open(color_file_json))
 
         for k, v in color_config_dict:
             self.__setattr__(k, v)
 
     def reset_colors(self):
+        """
+        Resets the color palette options to default
+        """
         color_default_dict = {'DARK_CHR_COLOR': '#5841bf',
                               'LIGHT_CHR_COLOR': '#648fff',
                               'NOVEL_HIT_COLOR': '#dc267f',
