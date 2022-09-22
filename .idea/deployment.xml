@@ -5,7 +5,7 @@
       <paths name="pmacs-superman">
         <serverdata>
           <mappings>
-            <mapping deploy="my_scratch/NEAT-Plots" local="$PROJECT_DIR$" web="/" />
+            <mapping deploy="my_scratch/NEAT-Plots/" local="$PROJECT_DIR$" web="/" />
           </mappings>
         </serverdata>
       </paths>

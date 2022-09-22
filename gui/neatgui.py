@@ -1,16 +1,18 @@
 import sys
+import os.path
+import traceback
 
 from PySide6.QtWidgets import (QApplication, QWidget, QMainWindow, QFileDialog, QSizePolicy, 
    QHBoxLayout, QGroupBox,QFormLayout, QLabel, QLineEdit, QComboBox, QVBoxLayout, 
    QPushButton, QTableWidget, QListWidget, QCheckBox, QTableWidgetItem, QHeaderView, 
    QDialog, QApplication, QMessageBox)
 from PySide6.QtCore import Qt, QObject, QThread, Signal
-from PySide6.QtGui import QMovie
+from PySide6.QtGui import QMovie, QDoubleValidator
 
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 
-#/Users/sdudek/lab/learning/python/NEAT-Plots/manhattan-plot
 sys.path.insert(1, '../../NEAT-Plots/manhattan-plot')
+sys.path.insert(1, '/Users/sdudek/lab/learning/python/NEAT-Plots/manhattan-plot')
 
 import pandas as pd
 import re
@@ -44,10 +46,24 @@ class Window(QMainWindow, Ui_MainWindow):
         self.mp = None
         self.chkBoxWithTable.setEnabled(False)
         self.progressBarBlue.setVisible(False)
+        self.loadedDataFile = False
+        self.lastDir = "."
+        self.errorMessage=""
+        
+        # numeric validators
+        self.threshMin = 0.0
+        self.threshMax = 1.0
+        self.maxDigits = 10
+        self.upperLimits = 1e50
+        self.lineSuggestThresh.setValidator(QDoubleValidator(self.threshMin ,self.threshMax,self.maxDigits ))
+        self.lineSigThresh.setValidator(QDoubleValidator(self.threshMin ,self.threshMax,self.maxDigits ))
+        self.lineMaxLogP.setValidator(QDoubleValidator(self.threshMin ,self.upperLimits,self.maxDigits ))
+        self.lineLDLBlockWidth.setValidator(QDoubleValidator(self.threshMin ,self.upperLimits,self.maxDigits ))
+        
 
+        
     def connectSignalsSlots(self):
         self.btnDataFn.clicked.connect(self.selectFile)
-#         self.btnDataFnLoad.clicked.connect(self.loadDataFile)
         self.btnDataFnLoad.clicked.connect(self.loadHeaders)
         self.btnAnnotationsFn.clicked.connect(self.selectAnnotFile)
         self.btnLoadAnnotFile.clicked.connect(self.loadAnnotFile)
@@ -65,7 +81,7 @@ class Window(QMainWindow, Ui_MainWindow):
         self.chkBoxVertical.stateChanged.connect(self.restrictTableOption)
         self.actionExit.triggered.connect(self.close)
         self.actionInformation.triggered.connect(self.about)
-# 
+ 
     def about(self):
         QMessageBox.about(
             self,
@@ -78,20 +94,37 @@ class Window(QMainWindow, Ui_MainWindow):
         self.setActiveTab(0)
 
     def moveTab2(self):
-        self.tabWidget.setCurrentIndex(1)
-        self.setActiveTab(1)
+        if self.loadedDataFile != True:
+            QMessageBox.warning(self,"Error", "<p>Please load data input file before proceeding</p>")
+        else:
+            self.tabWidget.setCurrentIndex(1)
+            self.setActiveTab(1)
     
     def moveTab3(self):
         self.tabWidget.setCurrentIndex(2)
         self.setActiveTab(2)
     
     def moveTab3Forward(self):
-        self.loadDataFile()
-        self.tabWidget.setCurrentIndex(2)
-        self.setActiveTab(2)
+        cols = set([self.bxChromCol.currentText(), self.bxPosCol.currentText(), self.bxIDCol.currentText(),
+            self.bxPvalueCol.currentText()])
+        if len(cols) != 4:   
+            QMessageBox.warning(self,"Error", "<p>Please set column names in data input file</p>")
+        else:
+            self.loadDataFile()
+            if self.errorMessage != "":
+                QMessageBox.warning(self,"Error", f"<p>{self.errorMessage}</p>")
+                self.errorMessage=""
+            else:
+                self.tabWidget.setCurrentIndex(2)
+                self.setActiveTab(2)
         
     
     def moveTab4(self):
+        if not self.annotDF.empty: 
+            cols = set([self.bxChromAnn.currentText(), self.bxPosAnn.currentText(), self.bxIDAnn.currentText()])
+            if len(cols) != 3:   
+                QMessageBox.warning(self,"Error", "<p>Please set column names for annotation file</p>")
+                return
         self.addAnnotation()
         self.tabWidget.setCurrentIndex(3)
         self.setActiveTab(3)
@@ -132,22 +165,28 @@ class Window(QMainWindow, Ui_MainWindow):
         layout.addRow(QLabel("Keep Genomic Pos"),self.chkBoxKeepGenomic)
         self.sectTWAS.setContentLayout(layout)
         
-#         self.layoutTabPlot.insertWidget(5,self.sect)
-#         self.layoutTabPlot.insertWidget(6 ,self.sectTWAS)
-        
         self.verticalLayoutScrollAreaPlot.insertWidget(5,self.sect)
         self.verticalLayoutScrollAreaPlot.insertWidget(6 ,self.sectTWAS)
         
 
     def selectFile(self):
-        fileName = QFileDialog.getOpenFileName(self, "Open File", "./")
+        fileName = QFileDialog.getOpenFileName(self, "Open File", self.lastDir)
+        self.lastDir = os.path.dirname(os.path.abspath(fileName[0]))
         self.lineDataFn.setText(fileName[0])
     
     def loadHeaders(self):
-        delimiter=self.getDelim() 
-        with open(self.lineDataFn.text()) as f:
-            self.headers = re.split(delimiter,f.readline())
-        self.setSelectionColumns(self.headers)
+        if self.lineDataFn.text() != "":
+            delimiter=self.getDelim()
+            try: 
+                with open(self.lineDataFn.text()) as f:
+                    self.headers = re.split(delimiter,f.readline())
+            except Exception as ex:
+                traceback_str = ''.join(traceback.format_tb(ex.__traceback__))
+                QMessageBox.warning(self,"Error", "<p>Loading file failed: " + str(ex) + "</p><p>Details: " +
+                    traceback_str + "</p>")
+            else:
+                self.setSelectionColumns(self.headers)
+                self.loadedDataFile = True
     
     def loadDataFile(self):
         nrows = self.spinTestRows.value() if self.spinTestRows.value() > 0 else None
@@ -167,6 +206,8 @@ class Window(QMainWindow, Ui_MainWindow):
         self.thread.started.connect(self.worker.loadDataFile)
         self.worker.finished.connect(self.thread.quit)
         self.worker.finished.connect(self.worker.deleteLater)
+        self.worker.exceptCaught.connect(self.thread.quit)
+        self.worker.exceptCaught.connect(self.workerError)
         self.thread.finished.connect(self.thread.deleteLater)
         
         self.dlg = ProcessingDialog(self)
@@ -176,26 +217,52 @@ class Window(QMainWindow, Ui_MainWindow):
         self.dlg.exec()
         
     
+    def workerError(self):
+        self.errorMessage=self.worker.errorStr
+        self.worker.deleteLater
+            
     # select Annotation file from dialog
     def selectAnnotFile(self):
-        fileName = QFileDialog.getOpenFileName(self, "Open File", "./")
+        fileName = QFileDialog.getOpenFileName(self, "Open File", self.lastDir)
+        self.lastDir = os.path.dirname(os.path.abspath(fileName[0]))
         self.lineAnnotationsFn.setText(fileName[0])
     
     def loadAnnotFile(self):
-        self.annotDF = pd.read_csv(self.lineAnnotationsFn.text())
-        self.setAnnotColumns(self.annotDF.columns)
+        if self.lineAnnotationsFn.text() != "":
+            try:
+                self.annotDF = pd.read_csv(self.lineAnnotationsFn.text())
+                self.setAnnotColumns(self.annotDF.columns)
+            except Exception as ex:
+                traceback_str = ''.join(traceback.format_tb(ex.__traceback__))
+                QMessageBox.warning(self,"Error", "Loading file failed: " + str(ex) + "</p><p>Details: " +
+                    traceback_str + "</p>")
         
         
     def selectKnownGenesFn(self):
-        fileName = QFileDialog.getOpenFileName(self, "Open File", "./")
+        fileName = QFileDialog.getOpenFileName(self, "Open File", self.lastDir)
+        self.lastDir = os.path.dirname(os.path.abspath(fileName[0]))
         self.lineKnownGenesFn.setText(fileName[0])
         
     def loadKnownGenesFile(self):
-        self.known_genes = open(self.lineKnownGenesFn.text()).read().splitlines()
+        if self.lineKnownGenesFn.text() != "":
+            try: 
+                self.known_genes = open(self.lineKnownGenesFn.text()).read().splitlines()
+            except Exception as ex:
+                traceback_str = ''.join(traceback.format_tb(ex.__traceback__))
+                QMessageBox.warning(self,"Error", "Loading file failed: " + str(ex) + "</p><p>Details: " +
+                    traceback_str + "</p>")
     
     def saveImage(self):
-        saveFn = QFileDialog.getSaveFileName(self, "Save plot image", "neat.png", "PNG files (*.png)")
-        self.canvasPlot.fig.savefig(saveFn[0], dpi=150)
+        defaultName = os.path.join(self.lastDir, "neat.png")
+        saveFn = QFileDialog.getSaveFileName(self, "Save plot image", defaultName, "PNG files (*.png)")
+        if saveFn[0] != "":
+            try:
+                self.lastDir = os.path.dirname(os.path.abspath(saveFn[0]))
+                self.canvasPlot.fig.savefig(saveFn[0], dpi=150)
+            except Exception as ex:
+                traceback_str = ''.join(traceback.format_tb(ex.__traceback__))
+                QMessageBox.warning(self,"Error", "Saving file failed: " + str(ex) + "</p><p>Details: " +
+                    traceback_str + "</p>")
         
     # return delmiiter for file set in combobox
     def getDelim(self):
@@ -247,6 +314,8 @@ class Window(QMainWindow, Ui_MainWindow):
         self.worker.moveToThread(self.thread)
         self.thread.started.connect(self.worker.thinData)
         self.worker.finished.connect(self.thread.quit)
+        self.worker.exceptCaught.connect(self.thread.quit)
+        self.worker.exceptCaught.connect(self.workerError)
         self.worker.finished.connect(self.worker.deleteLater)
         self.thread.finished.connect(self.thread.deleteLater)
         
@@ -266,10 +335,35 @@ class Window(QMainWindow, Ui_MainWindow):
     def updateProgress(self, progValue=0):
         self.progressBarBlue.setValue(progValue)
         QApplication.processEvents() 
+    
+    def withinRange(self, minimum, maximum, value):
+        if value < minimum or value > maximum:
+            return False
+        else:
+            return True
+    
+    def validatePlotInputs(self):
+        eMessage=""
+        if self.lineSuggestThresh.text() != "" and not self.withinRange(self.threshMin, self.threshMax, float(self.lineSuggestThresh.text())):
+            eMessage += "<p>Suggestive Threshold is outside of expected range (0.0-1.0)</p>"
+        if self.lineSigThresh.text() != "" and not self.withinRange(self.threshMin, self.threshMax, float(self.lineSigThresh.text())):
+            eMessage += "<p>Significant Threshold is outside of expected range (0.0-1.0)</p>"
+        if self.lineMaxLogP.text() != "" and not self.withinRange(self.threshMin, self.upperLimits, float(self.lineMaxLogP.text())):
+            eMessage += "<p>Max Log P is outside of expected range (0.0-1e50)</p>"
+        if self.lineLDLBlockWidth.text() != "" and not self.withinRange(self.threshMin, self.upperLimits, float(self.lineLDLBlockWidth.text())):
+            eMessage += "<p>LD Block Width is outside of expected range (0.0-1e50)</p>"
+        
+        if eMessage != "":
+            QMessageBox.warning(self,"Error", eMessage)
+            return False
+        else:
+            return True
+        
         
     # draw image on canvas
     def plotImage(self):
-#         self.horizontalLayoutCentral.itemAt(1).widget().deleteLater()
+        if not self.validatePlotInputs():
+            return
         if self.canvasPlot is not None:
             self.canvasPlot.setVisible(False)
             self.canvasPlot.deleteLater()
@@ -313,19 +407,23 @@ class Window(QMainWindow, Ui_MainWindow):
         else:
             keep_chr_pos = False
         
-        if self.chkBoxSignalsOnly.checkState() == Qt.Unchecked:
-            self.mp.full_plot(extra_cols=extra_cols, number_cols=number_cols, rep_genes=rep_genes, keep_chr_pos=keep_chr_pos,
-              with_table=include_table, rep_boost=rep_boost, with_title=include_title)
-        else:
-            self.mp.signal_plot(extra_cols=extra_cols, number_cols=number_cols, rep_genes=rep_genes, keep_chr_pos=keep_chr_pos,
-              with_table=include_table, rep_boost=rep_boost, with_title=include_title)
-        self.updateProgress(75)
-        
-#         self.horizontalLayoutCentral.itemAt(1).widget().deleteLater()
-        self.canvasPlot = PlotCanvas(self,self.mp.fig)
-#         self.horizontalLayoutCentral.addWidget(self.canvasPlot)
-        self.horizontalLayoutCentral.insertWidget(1,self.canvasPlot)
-        self.canvasPlot.plot()
+        try:
+            if self.chkBoxSignalsOnly.checkState() == Qt.Unchecked:
+                self.mp.full_plot(extra_cols=extra_cols, number_cols=number_cols, rep_genes=rep_genes, keep_chr_pos=keep_chr_pos,
+                  with_table=include_table, rep_boost=rep_boost, with_title=include_title)
+            else:
+                self.mp.signal_plot(extra_cols=extra_cols, number_cols=number_cols, rep_genes=rep_genes, keep_chr_pos=keep_chr_pos,
+                  with_table=include_table, rep_boost=rep_boost, with_title=include_title)
+            self.updateProgress(75)
+            
+            self.mp.fig.dpi=70
+            self.canvasPlot = PlotCanvas(self,self.mp.fig)
+            self.horizontalLayoutFrame.insertWidget(1,self.canvasPlot)
+            self.canvasPlot.plot()
+        except Exception as ex:
+            traceback_str = ''.join(traceback.format_tb(ex.__traceback__))
+            QMessageBox.warning(self,"Error", "<p>Unable to create plot: "  + str(ex) + "</p><p>Details: " +
+                    traceback_str + "</p>")
         
         self.progressBarBlue.setVisible(False)
 
@@ -408,6 +506,7 @@ class ProcessingDialog(QDialog):
     def __init__(self, parent=None, message="Loading File..."):
         super().__init__(parent)
 
+        loadingGif = get_path('resources/loading.gif')
         self.setWindowTitle("Please wait")
         self.layout = QVBoxLayout()
         self.layout.setAlignment(Qt.AlignHCenter)
@@ -417,7 +516,7 @@ class ProcessingDialog(QDialog):
         hlayout.addWidget(message)
         #self.layout.addWidget(message)
         self.layout.addLayout(hlayout)
-        self.movie = QMovie("resources/loading.gif", parent=self)
+        self.movie = QMovie(loadingGif, parent=self)
         movielabel = QLabel(self)
         movielabel.setMovie(self.movie)
         self.layout.addWidget(movielabel)
@@ -445,6 +544,8 @@ class PlotCanvas(FigureCanvas):
 # For using separate thread on long-running tasks
 class FileWorker(QObject):
     finished = Signal()
+    exceptCaught = Signal()
+    errorStr = ""
     mp = None
     delim = "\s+"
     annotDF = pd.DataFrame()
@@ -452,18 +553,35 @@ class FileWorker(QObject):
     plotParams={}
     canvasPlot=None
     
+    
     def loadDataFile(self):
-        self.mp.load_data(delim=self.delim)    
-        self.finished.emit()
+        try:
+            self.mp.load_data(delim=self.delim)    
+        except Exception as ex:
+            traceback_str = ''.join(traceback.format_tb(ex.__traceback__))
+            self.errorStr = str(ex) + "<p>Details: " + traceback_str + "</p>"
+            self.exceptCaught.emit()
+        else:
+            self.finished.emit()
     
     def thinData(self):
-        self.mp.clean_data(col_map=self.columnMap)
-        if not self.annotDF.empty: 
-            self.mp.add_annotations(self.annotDF, extra_cols=self.addCols)
-        self.mp.get_thinned_data()
-        self.finished.emit()
+        try:
+            self.mp.clean_data(col_map=self.columnMap)
+            if not self.annotDF.empty: 
+                self.mp.add_annotations(self.annotDF, extra_cols=self.addCols)
+            self.mp.get_thinned_data()
+        except Exception as ex:
+            traceback_str = ''.join(traceback.format_tb(ex.__traceback__))
+            self.errorStr = str(ex) + "<p>Details: " + traceback_str + "</p>"
+            self.exceptCaught.emit()
+        else:
+            self.finished.emit()
 
-
+def get_path(filename):
+    if hasattr(sys, "_MEIPASS"):
+        return os.path.join(sys._MEIPASS, filename)
+    else:
+        return filename
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)

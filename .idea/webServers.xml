@@ -3,9 +3,9 @@
   <component name="WebServers">
     <option name="servers">
       <webServer id="cc5de483-092b-41c7-a4aa-4296f5b2b169" name="pmacs-superman">
-        <fileTransfer rootFolder="/home/guarelin" accessType="SFTP" host="superman.pmacs.upenn.edu" port="22" sshConfigId="cbe0b57a-9e1d-4381-8c6a-5a0c00748207" sshConfig="guarelin@superman.pmacs.upenn.edu:22 password">
+        <fileTransfer rootFolder="/home/guarelin" accessType="SFTP" host="superman.pmacs.upenn.edu" port="22" sshConfigId="cbe0b57a-9e1d-4381-8c6a-5a0c00748207" sshConfig="guarelin@superman.pmacs.upenn.edu">
           <advancedOptions>
-            <advancedOptions dataProtectionLevel="Private" keepAliveTimeout="0" passiveMode="true" shareSSLContext="true" />
+            <advancedOptions dataProtectionLevel="Private" passiveMode="true" shareSSLContext="true" />
           </advancedOptions>
         </fileTransfer>
       </webServer>
