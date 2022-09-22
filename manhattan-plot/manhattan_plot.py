@@ -4,18 +4,8 @@ import matplotlib.pyplot as plt
 from matplotlib.patches import ConnectionPatch
 import matplotlib as mpl
 from scipy.stats import chi2
+import json
 
-
-DARK_CHR_COLOR = '#5841bf'
-LIGHT_CHR_COLOR = '#648fff'
-NOVEL_HIT_COLOR = '#dc267f'
-NOVEL_TABLE_COLOR = '#eb7fb3'
-REP_HIT_COLOR = '#ffbb00'
-REP_TABLE_COLOR = '#ffdc7a'
-FIFTH_COLOR = '#d45c00'
-TABLE_HEAD_COLOR = '#9e9e9e'
-COLOR_MAP = 'turbo_r'
-CHR_POS_ROUND = 5E4
 
 # https://en.wikipedia.org/wiki/Human_genome
 CHR_LENGTHS = {1: 248956422,
@@ -74,6 +64,17 @@ class ManhattanPlot:
     annot_list = []
     spec_genes = []
 
+    DARK_CHR_COLOR = '#5841bf'
+    LIGHT_CHR_COLOR = '#648fff'
+    NOVEL_HIT_COLOR = '#dc267f'
+    NOVEL_TABLE_COLOR = '#eb7fb3'
+    REP_HIT_COLOR = '#ffbb00'
+    REP_TABLE_COLOR = '#ffdc7a'
+    FIFTH_COLOR = '#d45c00'
+    TABLE_HEAD_COLOR = '#9e9e9e'
+    COLOR_MAP = 'turbo_r'
+    CHR_POS_ROUND = 5E4
+
     def __init__(self, file_path, test_rows=None, title='Manhattan Plot'):
         """
         Constructor for ManhattanPlot object
@@ -87,6 +88,26 @@ class ManhattanPlot:
         self.path = file_path
         self.title = title
         self.test_rows = test_rows
+
+    def config_colors(self, color_file_json):
+        color_config_dict = json.load(open(color_file_json))
+
+        for k, v in color_config_dict:
+            self.__setattr__(k, v)
+
+    def reset_colors(self):
+        color_default_dict = {'DARK_CHR_COLOR': '#5841bf',
+                              'LIGHT_CHR_COLOR': '#648fff',
+                              'NOVEL_HIT_COLOR': '#dc267f',
+                              'NOVEL_TABLE_COLOR': '#eb7fb3',
+                              'REP_HIT_COLOR': '#ffbb00',
+                              'REP_TABLE_COLOR': '#ffdc7a',
+                              'FIFTH_COLOR': '#d45c00',
+                              'TABLE_HEAD_COLOR': '#9e9e9e',
+                              'COLOR_MAP': 'turbo_r'}
+
+        for k, v in color_default_dict:
+            self.__setattr__(k, v)
 
     def load_data(self, delim='\s+'):
         """
