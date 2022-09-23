@@ -11,7 +11,8 @@ from PySide6.QtGui import QMovie, QDoubleValidator
 
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 
-sys.path.insert(1, '../manhattan-plot')
+syspath = os.path.join('..', 'manhattan-plot')
+sys.path.insert(1,syspath)
 
 import pandas as pd
 import re
