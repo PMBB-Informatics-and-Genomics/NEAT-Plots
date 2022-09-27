@@ -47,6 +47,7 @@ class ManhattanPlot:
 
     annotate = True
     signal_color_col = None
+    phewas_updown_col, phewas_rep_color_col, phewas_size_col = None, None, None
     twas_color_col, twas_updown_col = None, None
 
     ld_block = 4E5
@@ -73,7 +74,14 @@ class ManhattanPlot:
     FIFTH_COLOR = '#d45c00'
     TABLE_HEAD_COLOR = '#9e9e9e'
     COLOR_MAP = 'turbo_r'
+
+
     CHR_POS_ROUND = 5E4
+    MIN_PT_SZ = 5
+    MAX_PT_SZ = 200
+
+    MIN_TRI_SZ = 5
+    MAX_TRI_SZ = 200
 
     def __init__(self, file_path, test_rows=None, title='Manhattan Plot'):
         """
@@ -195,12 +203,17 @@ class ManhattanPlot:
         self.df['ID_x'].update(self.df['ID_y'])
         self.df = self.df.rename(columns={'ID_x': 'ID'})
 
-    def update_plotting_parameters(self, annotate='', signal_color_col='', twas_color_col='', twas_updown_col='', sig='', sug='', annot_thresh='', ld_block='', vertical='', max_log_p='', invert='', merge_genes='', title=''):
+    def update_plotting_parameters(self, annotate='', signal_color_col='', phewas_rep_color_col='', phewas_updown_col='', phewas_size_col='', twas_color_col='', twas_updown_col='', sig='', sug='', annot_thresh='', ld_block='', vertical='', max_log_p='', invert='', merge_genes='', title=''):
         self.annotate = self.__update_param(self.annotate, annotate)
         self.ld_block = self.__update_param(self.ld_block, ld_block)
         self.title = self.__update_param(self.title, title)
 
         self.signal_color_col = self.__update_param(self.signal_color_col, signal_color_col)
+
+        self.phewas_rep_color_col = self.__update_param(self.phewas_rep_color_col, phewas_rep_color_col)
+        self.phewas_updown_col = self.__update_param(self.phewas_updown_col, phewas_updown_col)
+        self.phewas_size_col = self.__update_param(self.phewas_size_col, phewas_size_col)
+
         self.twas_updown_col = self.__update_param(self.twas_updown_col, twas_updown_col)
         self.twas_color_col = self.__update_param(self.twas_color_col, twas_color_col)
 
@@ -290,8 +303,20 @@ class ManhattanPlot:
             self.base_ax.scatter(odds_df[self.plot_x_col], odds_df[self.plot_y_col], c=self.LIGHT_CHR_COLOR, s=2)
             self.base_ax.scatter(evens_df[self.plot_x_col], evens_df[self.plot_y_col], c=self.DARK_CHR_COLOR, s=2)
         else:
-            self.base_ax.scatter(odds_df[self.plot_x_col], odds_df[self.plot_y_col], c='silver', s=2)
-            self.base_ax.scatter(evens_df[self.plot_x_col], evens_df[self.plot_y_col], c='dimgray', s=2)
+            if self.phewas_size_col is None:
+                odds_df['pt_sz'] = 2
+                evens_df['pt_sz'] = 2
+            else:
+                min_size, max_size = self.MIN_PT_SZ, self.MAX_PT_SZ
+                odds_df['pt_sz'] = self.__convert_linear_scale(data=odds_df[self.phewas_size_col].abs(), new_min=min_size, new_max=max_size)
+                evens_df['pt_sz'] = self.__convert_linear_scale(data=evens_df[self.phewas_size_col].abs(), new_min=min_size, new_max=max_size)
+
+            if self.phewas_updown_col is None:
+                self.base_ax.scatter(odds_df[self.plot_x_col], odds_df[self.plot_y_col], c='silver', s=odds_df['pt_sz'])
+                self.base_ax.scatter(evens_df[self.plot_x_col], evens_df[self.plot_y_col], c='dimgray', s=evens_df['pt_sz'])
+            else:
+                self.base_ax.scatter(odds_df[self.plot_x_col], odds_df[self.plot_y_col], edgecolors='silver', facecolors='none', s=odds_df['pt_sz'], alpha=1, linewidth=0.2)
+                self.base_ax.scatter(evens_df[self.plot_x_col], evens_df[self.plot_y_col], edgecolors='dimgray', facecolors='none', s=evens_df['pt_sz'], alpha=1, linewidth=0.2)
 
         self.__add_threshold_ticks()
         self.__cosmetic_axis_edits()
@@ -886,11 +911,28 @@ class ManhattanPlot:
         colors = evens_df['Replication'].replace({True: self.REP_HIT_COLOR, False: self.NOVEL_HIT_COLOR})
         self.base_ax.scatter(evens_df[self.plot_x_col], evens_df[self.plot_y_col], c=colors, s=10)
 
+    def __convert_linear_scale(self, new_min, new_max, data):
+        aRange = data.max() - data.min()
+        aMin = data.min()
+        new_range = new_max - new_min
+
+        new_data = (((data - aMin) / aRange) * new_range) + new_min
+
+        return new_data
+
     def __plot_color_signals(self, odds_df, evens_df):
+        if self.phewas_rep_color_col is not None:
+            # Filter points that get signal colors by Known == True
+            odds_df = odds_df[~odds_df[self.phewas_rep_color_col]]
+            evens_df = evens_df[~evens_df[self.phewas_rep_color_col]]
+            self.base_ax.set_yticks(np.arange(0, 350, 20))
+            self.fig.set_size_inches(14.4, 8)
+
         unique_vals = list(odds_df[self.signal_color_col].dropna().unique())
         unique_vals.extend(list(evens_df[self.signal_color_col].dropna().unique()))
         unique_vals = list(set(unique_vals))
-        discrete = len(unique_vals) <= 40
+        discrete = len(unique_vals) <= 30
+
         if not discrete:
             self.base_ax.scatter(odds_df[self.plot_x_col], odds_df[self.plot_y_col], c=odds_df[self.signal_color_col],
                                  cmap=plt.cm.get_cmap(self.COLOR_MAP), s=10,
@@ -909,11 +951,45 @@ class ManhattanPlot:
             odds_df['Cat_Num'] = odds_df[self.signal_color_col].replace(cat_to_num)
             evens_df['Cat_Num'] = evens_df[self.signal_color_col].replace(cat_to_num)
 
-            self.base_ax.scatter(odds_df[self.plot_x_col], odds_df[self.plot_y_col], c=odds_df['Cat_Num'],
-                                 cmap=plt.cm.get_cmap(self.COLOR_MAP, len(categories)), s=10)
-            scat = self.base_ax.scatter(evens_df[self.plot_x_col], evens_df[self.plot_y_col], c=evens_df['Cat_Num'],
-                                        cmap=plt.cm.get_cmap(self.COLOR_MAP, len(categories)), s=10)
-            print(categories, cat_to_num, unique_vals)
+            if self.phewas_updown_col is None:
+                if self.phewas_size_col is None:
+                    odds_df['pt_sz'] = 10
+                    evens_df['pt_sz'] = 10
+                else:
+                    min_size, max_size = self.MIN_PT_SZ, self.MAX_PT_SZ
+                    odds_df['pt_sz'] = self.__convert_linear_scale(data=odds_df[self.phewas_size_col].abs(), new_min=min_size, new_max=max_size)
+                    evens_df['pt_sz'] = self.__convert_linear_scale(data=evens_df[self.phewas_size_col].abs(), new_min=min_size, new_max=max_size)
+
+                self.base_ax.scatter(odds_df[self.plot_x_col], odds_df[self.plot_y_col], c=odds_df['Cat_Num'],
+                                     cmap=plt.cm.get_cmap(self.COLOR_MAP, len(categories)), s=odds_df['pt_sz'])
+                scat = self.base_ax.scatter(evens_df[self.plot_x_col], evens_df[self.plot_y_col], c=evens_df['Cat_Num'],
+                                            cmap=plt.cm.get_cmap(self.COLOR_MAP, len(categories)), s=evens_df['pt_sz'])
+
+            elif self.phewas_updown_col is not None:
+
+                if self.phewas_size_col is None:
+                    odds_df['pt_sz'] = 60
+                    evens_df['pt_sz'] = 60
+                else:
+                    min_size, max_size = self.MIN_TRI_SZ, self.MAX_TRI_SZ
+                    odds_df['pt_sz'] = self.__convert_linear_scale(data=odds_df[self.phewas_size_col].abs(), new_min=min_size, new_max=max_size)
+                    evens_df['pt_sz'] = self.__convert_linear_scale(data=evens_df[self.phewas_size_col].abs(), new_min=min_size, new_max=max_size)
+
+                odds_df['up'] = (odds_df[self.phewas_updown_col] > 0)
+                evens_df['up'] = (evens_df[self.phewas_updown_col] > 0)
+
+                for updown, subDF in odds_df.groupby('up'):
+                    shape = '^' if updown else 'v'
+                    self.base_ax.scatter(subDF[self.plot_x_col], subDF[self.plot_y_col], c=subDF['Cat_Num'],
+                                         cmap=plt.cm.get_cmap(self.COLOR_MAP, len(categories)),
+                                         s=subDF['pt_sz'], marker=shape, edgecolors='k', linewidth=0.3)
+
+                for updown, subDF in evens_df.groupby('up'):
+                    shape = '^' if updown else 'v'
+                    scat = self.base_ax.scatter(subDF[self.plot_x_col], subDF[self.plot_y_col],
+                                                c=subDF['Cat_Num'], cmap=plt.cm.get_cmap(self.COLOR_MAP, len(categories)),
+                                                s=subDF['pt_sz'], marker=shape, edgecolors='k', linewidth=0.3)
+
             self.__add_color_bar(scat, categories)
 
     def __add_color_bar(self, mappable, categories):
@@ -1010,7 +1086,7 @@ class ManhattanPlot:
 
         if self.twas_color_col is not None:
             unique_vals = sorted(annotTable[self.twas_color_col].unique())
-            cmap = plt.cm.get_cmap(COLOR_MAP, len(unique_vals))
+            cmap = plt.cm.get_cmap(self.COLOR_MAP, len(unique_vals))
             fractions = (np.arange(len(unique_vals)) / len(unique_vals)) + (0.5 / len(unique_vals))
             colors = [cmap(f) for f in fractions]
             color_map = dict(zip(unique_vals, colors))
