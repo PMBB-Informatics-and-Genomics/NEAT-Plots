@@ -47,7 +47,8 @@ class ManhattanPlot:
 
     annotate = True
     signal_color_col = None
-    phewas_updown_col, phewas_rep_color_col, phewas_size_col = None, None, None
+    phewas_updown_col, phewas_rep_color_col = None, None
+    phewas_size_col, phewas_annotate_col = None, None
     twas_color_col, twas_updown_col = None, None
 
     ld_block = 4E5
@@ -203,7 +204,7 @@ class ManhattanPlot:
         self.df['ID_x'].update(self.df['ID_y'])
         self.df = self.df.rename(columns={'ID_x': 'ID'})
 
-    def update_plotting_parameters(self, annotate='', signal_color_col='', phewas_rep_color_col='', phewas_updown_col='', phewas_size_col='', twas_color_col='', twas_updown_col='', sig='', sug='', annot_thresh='', ld_block='', vertical='', max_log_p='', invert='', merge_genes='', title=''):
+    def update_plotting_parameters(self, annotate='', signal_color_col='', phewas_rep_color_col='', phewas_updown_col='', phewas_size_col='', phewas_annotate_col='', twas_color_col='', twas_updown_col='', sig='', sug='', annot_thresh='', ld_block='', vertical='', max_log_p='', invert='', merge_genes='', title=''):
         self.annotate = self.__update_param(self.annotate, annotate)
         self.ld_block = self.__update_param(self.ld_block, ld_block)
         self.title = self.__update_param(self.title, title)
@@ -213,6 +214,7 @@ class ManhattanPlot:
         self.phewas_rep_color_col = self.__update_param(self.phewas_rep_color_col, phewas_rep_color_col)
         self.phewas_updown_col = self.__update_param(self.phewas_updown_col, phewas_updown_col)
         self.phewas_size_col = self.__update_param(self.phewas_size_col, phewas_size_col)
+        self.phewas_annotate_col = self.__update_param(self.phewas_annotate_col, phewas_annotate_col)
 
         self.twas_updown_col = self.__update_param(self.twas_updown_col, twas_updown_col)
         self.twas_color_col = self.__update_param(self.twas_color_col, twas_color_col)
@@ -399,18 +401,45 @@ class ManhattanPlot:
                 alreadyPlottedGenes.append(signalID)
                 self.annot_list.append(row)
 
-    def plot_table(self, extra_cols={}, number_cols=[], rep_genes=[], keep_chr_pos=True):
+    def __plot_pointers_only(self):
+
+        signalDF = self.thinned[self.thinned[self.phewas_annotate_col]]
+
+        for _, row in signalDF.iterrows():
+            if self.vertical:
+                if self.max_log_p is not None:
+                    pointer_x = signalDF[signalDF[self.plot_x_col] <= self.max_log_p][self.plot_x_col].max()
+                else:
+                    pointer_x = signalDF[self.plot_x_col].max()
+                self.base_ax.plot([pointer_x, self.max_x],
+                                  [row[self.plot_y_col], row[self.plot_y_col]],
+                                  c='silver', linewidth=1.5, alpha=1)
+            else:
+                if self.max_log_p is not None:
+                    pointer_y = signalDF[signalDF[self.plot_y_col] <= self.max_log_p][self.plot_y_col].max()
+                else:
+                    pointer_y = signalDF[self.plot_y_col].max()
+                self.base_ax.plot([row[self.plot_x_col], row[self.plot_x_col]],
+                                  [pointer_y, self.max_y],
+                                  c='silver', linewidth=1.5, alpha=1)
+
+        self.annot_list.append(row)
+
+    def plot_table(self, extra_cols={}, number_cols=[], rep_genes=[], keep_chr_pos=True, with_table_bg=True, with_table_grid=True):
         if self.vertical:
             self.__plot_table_vertical(extra_cols=extra_cols, number_cols=number_cols, rep_genes=rep_genes, keep_chr_pos=keep_chr_pos)
         else:
-            self.__plot_table_horizontal(rep_genes=rep_genes)
+            self.__plot_table_horizontal(rep_genes=rep_genes, with_table_bg=with_table_bg, with_table_grid=with_table_grid)
 
-    def full_plot(self, rep_genes=[], extra_cols={}, number_cols=[], rep_boost=False, save=None, with_table=True, save_res=150, with_title=True, keep_chr_pos=True):
+    def full_plot(self, rep_genes=[], extra_cols={}, number_cols=[], rep_boost=False, save=None, with_table=True, save_res=150, with_title=True, keep_chr_pos=True, with_table_bg=True, with_table_grid=True):
         self.plot_data(with_table=with_table)
         self.plot_sig_signals(rep_genes=rep_genes, rep_boost=rep_boost)
         if with_table:
-            self.plot_annotations(rep_genes=rep_genes, rep_boost=rep_boost)
-            self.plot_table(extra_cols=extra_cols, number_cols=number_cols, rep_genes=rep_genes, keep_chr_pos=keep_chr_pos)
+            if self.phewas_annotate_col is None:
+                self.plot_annotations(rep_genes=rep_genes, rep_boost=rep_boost)
+            else:
+                self.__plot_pointers_only()
+            self.plot_table(extra_cols=extra_cols, number_cols=number_cols, rep_genes=rep_genes, keep_chr_pos=keep_chr_pos, with_table_bg=with_table_bg, with_table_grid=with_table_grid)
         if with_title:
             plt.suptitle(self.title)
             plt.tight_layout()
@@ -438,7 +467,7 @@ class ManhattanPlot:
             self.base_ax.set_yticklabels(signal_mid.index)
         else:
             self.base_ax.set_xticks(signal_mid.values)
-            self.base_ax.set_xticklabels(signal_mid.index)
+            self.base_ax.set_xticklabels(signal_mid.index, rotation=30, ha='right')
         odd_signals = signal_size.index[::2]
         even_signals = signal_size.index[1::2]
         pos_adjust = - signal_min.loc[signal_df['ID']] + signal_start.loc[signal_df['ID']]
@@ -451,8 +480,26 @@ class ManhattanPlot:
         odds_df = signal_df[signal_df['ID'].isin(odd_signals)]
         evens_df = signal_df[signal_df['ID'].isin(even_signals)]
 
-        self.base_ax.scatter(odds_df[self.plot_x_col], odds_df[self.plot_y_col], c=self.LIGHT_CHR_COLOR, s=25)
-        self.base_ax.scatter(evens_df[self.plot_x_col], evens_df[self.plot_y_col], c=self.DARK_CHR_COLOR, s=25)
+        if self.signal_color_col is None:
+            self.base_ax.scatter(odds_df[self.plot_x_col], odds_df[self.plot_y_col], c=self.LIGHT_CHR_COLOR, s=25)
+            self.base_ax.scatter(evens_df[self.plot_x_col], evens_df[self.plot_y_col], c=self.DARK_CHR_COLOR, s=25)
+        else:
+            self.base_ax.scatter(odds_df[self.plot_x_col], odds_df[self.plot_y_col], c='silver', s=25)
+            self.base_ax.scatter(evens_df[self.plot_x_col], evens_df[self.plot_y_col], c='dimgrey', s=25)
+
+            filtered_odds_df = odds_df[odds_df['P'] < 1E-3]
+            filtered_evens_df = evens_df[evens_df['P'] < 1E-3]
+
+            color_min = min(odds_df[self.signal_color_col].quantile(0.05), evens_df[self.signal_color_col].quantile(0.05))
+            color_max = max(odds_df[self.signal_color_col].quantile(0.95), evens_df[self.signal_color_col].quantile(0.95))
+            print(color_min, color_max)
+
+            self.base_ax.scatter(filtered_odds_df[self.plot_x_col], filtered_odds_df[self.plot_y_col], s=25,
+                                 c=filtered_odds_df[self.signal_color_col], cmap=self.COLOR_MAP, vmin=color_min, vmax=color_max)
+            scat = self.base_ax.scatter(filtered_evens_df[self.plot_x_col], filtered_evens_df[self.plot_y_col], s=25,
+                                 c=filtered_evens_df[self.signal_color_col], cmap=self.COLOR_MAP, vmin=color_min, vmax=color_max)
+
+            self.fig.colorbar(scat, cax=self.cbar_ax, orientation='horizontal')
 
         peak_idx = signal_df.groupby('ID')['ROUNDED_Y'].idxmax()
         signal_df = signal_df.rename(columns=extra_cols)
@@ -465,16 +512,18 @@ class ManhattanPlot:
         else:
             self.base_ax.set_xlabel('Signal Label')
 
-        for _, row in annot_df.iterrows():
-            if self.vertical:
-                self.base_ax.plot([row[self.plot_x_col], self.max_x],
-                                  [row[self.plot_y_col], row[self.plot_y_col]],
-                                  c='silver', linewidth=1.5, alpha=1)
-            else:
-                self.base_ax.plot([row[self.plot_x_col], row[self.plot_x_col]],
-                                  [row[self.plot_y_col], self.max_y],
-                                  c='silver', linewidth=1.5, alpha=1)
-        self.plot_table(extra_cols=extra_cols, number_cols=number_cols, rep_genes=rep_genes, keep_chr_pos=keep_chr_pos)
+        if with_table:
+            for _, row in annot_df.iterrows():
+                if self.vertical:
+                    self.base_ax.plot([row[self.plot_x_col], self.max_x],
+                                      [row[self.plot_y_col], row[self.plot_y_col]],
+                                      c='silver', linewidth=1.5, alpha=1)
+                else:
+                    self.base_ax.plot([row[self.plot_x_col], row[self.plot_x_col]],
+                                      [row[self.plot_y_col], self.max_y],
+                                      c='silver', linewidth=1.5, alpha=1)
+
+            self.plot_table(extra_cols=extra_cols, number_cols=number_cols, rep_genes=rep_genes, keep_chr_pos=keep_chr_pos)
 
         if with_title:
             plt.suptitle('Signals Only:\n' + self.title)
@@ -925,7 +974,7 @@ class ManhattanPlot:
             # Filter points that get signal colors by Known == True
             odds_df = odds_df[~odds_df[self.phewas_rep_color_col]]
             evens_df = evens_df[~evens_df[self.phewas_rep_color_col]]
-            self.base_ax.set_yticks(np.arange(0, 350, 20))
+            # self.base_ax.set_yticks(np.arange(0, 350, 20))
             self.fig.set_size_inches(14.4, 8)
 
         unique_vals = list(odds_df[self.signal_color_col].dropna().unique())
@@ -934,15 +983,18 @@ class ManhattanPlot:
         discrete = len(unique_vals) <= 30
 
         if not discrete:
+            color_min = min(odds_df[self.signal_color_col].quantile(0.05),
+                            evens_df[self.signal_color_col].quantile(0.05))
+            color_max = max(odds_df[self.signal_color_col].quantile(0.95),
+                            evens_df[self.signal_color_col].quantile(0.95))
+
             self.base_ax.scatter(odds_df[self.plot_x_col], odds_df[self.plot_y_col], c=odds_df[self.signal_color_col],
                                  cmap=plt.cm.get_cmap(self.COLOR_MAP), s=10,
-                                 vmin=odds_df[self.signal_color_col].quantile(0.05),
-                                 vmax=odds_df[self.signal_color_col].quantile(0.95))
+                                 vmin=color_min, vmax=color_max)
             scat = self.base_ax.scatter(evens_df[self.plot_x_col], evens_df[self.plot_y_col],
                                         c=evens_df[self.signal_color_col],
                                         cmap=plt.cm.get_cmap(self.COLOR_MAP), s=10,
-                                        vmin=odds_df[self.signal_color_col].quantile(0.05),
-                                        vmax=odds_df[self.signal_color_col].quantile(0.95))
+                                        vmin=color_min, vmax=color_max)
             self.fig.colorbar(scat, cax=self.cbar_ax, orientation='horizontal')
 
         else:
@@ -1062,11 +1114,15 @@ class ManhattanPlot:
                                  arrowstyle='-', color='silver')
             self.fig.add_artist(cp)
 
-    def __plot_table_horizontal(self, rep_genes=[]):
-        if len(self.annot_list) == 0:
+    def __plot_table_horizontal(self, rep_genes=[], with_table_bg=True, with_table_grid=True):
+        if len(self.annot_list) == 0 and self.phewas_annotate_col is None:
             raise ValueError("No signals to annotate. Try making P-value thresholds less stringent")
 
-        annotTable = pd.concat(self.annot_list, axis=1).transpose()
+        if self.phewas_annotate_col is None:
+            annotTable = pd.concat(self.annot_list, axis=1).transpose()
+        else:
+            annotTable = self.thinned[self.thinned[self.phewas_annotate_col]].set_index('ID')
+
         annotTable = annotTable.sort_values(by=['#CHROM', 'POS'])
         genes = [list(annotTable.index)]
         num_cols = len(annotTable)
@@ -1076,10 +1132,6 @@ class ManhattanPlot:
                                     colWidths=[1 / (num_cols + 2) for g in genes[0]],
                                     cellLoc='center')
         table.AXESPAD = 0
-
-        for cell in table._cells:
-            table._cells[cell].get_text().set_rotation(90)
-            table._cells[cell].set_height(1)
 
         self.table_ax.set_axis_off()
         self.fig.tight_layout()
@@ -1099,21 +1151,38 @@ class ManhattanPlot:
 
         cell_width = table[(0, 0)].get_width()
         cell_height = table[(0, 0)].get_height()
+
+        for index, cell in table.get_celld().items():
+            if with_table_grid:
+                cell.get_text().set_rotation(90)
+                cell.PAD = 0
+                cell.set_height(1)
+            elif not with_table_grid:
+                cell.set_linewidth(0)
+                cell.PAD = 0
+                cell.get_text().set_rotation(45)
+                cell.get_text().set_verticalalignment('bottom')
+                cell.get_text().set_horizontalalignment('left')
+                cell.get_text().set_fontsize(cell.get_text().get_fontsize() + 5)
+
         for i in range(num_cols):
             connection_row = annotTable.iloc[i]
             cell_text = table[(0, i)].get_text().get_text()
-            if cell_text in rep_genes:
+
+            if cell_text in rep_genes and with_table_bg:
                 table[(0, i)].set_facecolor(self.REP_TABLE_COLOR)
-                # table[(0, i)].set_facecolor('silver')
-            else:
+            elif with_table_bg:
                 table[(0, i)].set_facecolor(self.NOVEL_TABLE_COLOR)
-                # table[(0, i)].set_facecolor('silver')
+
             connect_y = 0 if not self.invert else cell_height
+            connect_y = 0.05 if not with_table_grid else connect_y
+            connect_x = table[(0, i)].get_x() + (0.5*cell_width) if with_table_grid else table[(0, i)].get_x()
             cp = ConnectionPatch(xyA=(connection_row[self.plot_x_col], self.max_y),
                                  axesA=self.base_ax, coordsA='data',
-                                 xyB=(table[(0, i)].get_x() + (0.5*cell_width), connect_y),
+                                 xyB=(connect_x, connect_y),
                                  axesB=self.table_ax, coordsB='axes fraction',
                                  arrowstyle='-', color='silver')
+
             if self.twas_updown_col is not None:
                 shape = 'v' if connection_row[self.twas_updown_col] < 0 else '^'
                 if self.twas_color_col is None:
