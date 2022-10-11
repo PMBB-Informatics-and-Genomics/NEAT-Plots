@@ -435,18 +435,28 @@ class Window(QMainWindow, Ui_MainWindow):
         columns = set(list(self.mp.df.columns))
         if not self.annotDF.empty:
             columns.update(list(self.annotDF.columns))
+        
+        columns.discard('#CHROM')
+        columns.discard('POS')
+        
         # get all selected columns
         # remove those from the columns set
         # add those columns to the table
-        selectedCols = set(item.text() for item in self.listOtherAnn.selectedItems())
-        selectedCols.add(self.bxChromCol.currentText())
-        selectedCols.add(self.bxPosCol.currentText())
-        selectedCols.add(self.bxIDCol.currentText())
-        selectedCols.add(self.bxPvalueCol.currentText())
-        selectedCols.add(self.bxChromAnn.currentText())
-        selectedCols.add(self.bxPosAnn.currentText())
-        selectedCols.add(self.bxIDAnn.currentText())
-        return list(columns - selectedCols)    
+        #selectedCols = set(item.text() for item in self.listOtherAnn.selectedItems())
+        #selectedCols.add(self.bxChromCol.currentText())
+        #selectedCols.add(self.bxPosCol.currentText())
+        #selectedCols.add(self.bxIDCol.currentText())
+        #selectedCols.add(self.bxPvalueCol.currentText())
+        #selectedCols.add(self.bxChromAnn.currentText())
+        #selectedCols.add(self.bxPosAnn.currentText())
+        #selectedCols.add(self.bxIDAnn.currentText())
+        #retcols = list(columns - selectedCols)
+        retcols = list(columns)
+        retcols.insert(0,self.bxPosCol.currentText())
+        retcols.insert(0,self.bxChromCol.currentText())
+        return retcols
+        
+        
 
     # fill extra columns table with any columns not already selected
     def fillExtraColsTable(self):
