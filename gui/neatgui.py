@@ -462,7 +462,7 @@ class Window(QMainWindow, Ui_MainWindow):
     def fillExtraColsTable(self):
         self.tableAddColumns.setRowCount(0)
         extracols = self.getExtraCols()
-        extracols.sort()
+        #extracols.sort()
         self.tableAddColumns.clearContents()
         for column in extracols:
             self.addRowExtraColTable(column)
