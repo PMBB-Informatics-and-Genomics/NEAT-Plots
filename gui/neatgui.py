@@ -29,9 +29,9 @@ class Window(QMainWindow, Ui_MainWindow):
         self.connectSignalsSlots()
         self.addSections()
         self.delims={'whitespace': '\s+', 
-            ',' : ',',
+            ', (comma)' : ',',
             'tab' : '\t',
-            '|' : '|'
+            '| (pipe)' : '|'
             }
         self.known_genes = []
         self.canvasPlot = None
@@ -59,8 +59,10 @@ class Window(QMainWindow, Ui_MainWindow):
         self.lineSigThresh.setValidator(QDoubleValidator(self.threshMin ,self.threshMax,self.maxDigits ))
         self.lineMaxLogP.setValidator(QDoubleValidator(self.threshMin ,self.upperLimits,self.maxDigits ))
         self.lineLDLBlockWidth.setValidator(QDoubleValidator(self.threshMin ,self.upperLimits,self.maxDigits ))
-        
 
+        self.centerCombo(self.bxDelimiter)
+        self.centerCombo(self.bxAnnotDelimiter)
+        
         
     def connectSignalsSlots(self):
         self.btnDataFn.clicked.connect(self.selectFile)
@@ -81,6 +83,11 @@ class Window(QMainWindow, Ui_MainWindow):
         self.chkBoxVertical.stateChanged.connect(self.restrictTableOption)
         self.actionExit.triggered.connect(self.close)
         self.actionInformation.triggered.connect(self.about)
+ 
+    def centerCombo(self, box):
+        line_edit = box.lineEdit()
+        line_edit.setAlignment(Qt.AlignCenter)
+        line_edit.setReadOnly(True)
  
     def about(self):
         QMessageBox.about(
@@ -176,7 +183,7 @@ class Window(QMainWindow, Ui_MainWindow):
     
     def loadHeaders(self):
         if self.lineDataFn.text() != "":
-            delimiter=self.getDelim()
+            delimiter=self.getDelim(self.bxDelimiter.currentText())
             try: 
                 with open(self.lineDataFn.text()) as f:
                     self.headers = re.split(delimiter,f.readline())
@@ -191,7 +198,7 @@ class Window(QMainWindow, Ui_MainWindow):
     def loadDataFile(self):
         nrows = self.spinTestRows.value() if self.spinTestRows.value() > 0 else None
         
-        delimiter=self.getDelim()        
+        delimiter=self.getDelim(self.bxDelimiter.currentText())        
         self.mp = manhattan_plot.ManhattanPlot(file_path=self.lineDataFn.text(),
                        title=self.lineDataTitle.text(),
                        test_rows=nrows)
@@ -230,7 +237,7 @@ class Window(QMainWindow, Ui_MainWindow):
     def loadAnnotFile(self):
         if self.lineAnnotationsFn.text() != "":
             try:
-                self.annotDF = pd.read_csv(self.lineAnnotationsFn.text())
+                self.annotDF = pd.read_csv(self.lineAnnotationsFn.text(), delimiter=self.getDelim(self.bxAnnotDelimiter.currentText()))
                 self.setAnnotColumns(self.annotDF.columns)
             except Exception as ex:
                 traceback_str = ''.join(traceback.format_tb(ex.__traceback__))
@@ -265,8 +272,9 @@ class Window(QMainWindow, Ui_MainWindow):
                     traceback_str + "</p>")
         
     # return delmiiter for file set in combobox
-    def getDelim(self):
-        return self.delims.setdefault(self.bxDelimiter.currentText(), self.bxDelimiter.currentText())
+    def getDelim(self, text):
+        #return self.delims.setdefault(self.bxDelimiter.currentText(), self.bxDelimiter.currentText())
+        return self.delims.setdefault(text, text)
     
     # set columns for comboboxes for user selection
     def setSelectionColumns(self, cols):
