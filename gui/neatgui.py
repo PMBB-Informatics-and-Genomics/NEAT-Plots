@@ -35,6 +35,7 @@ class Window(QMainWindow, Ui_MainWindow):
             }
         self.known_genes = []
         self.canvasPlot = None
+        self.prevDataFn = ""
         
         self.layoutTabPlot.setAlignment(Qt.AlignHCenter | Qt.AlignTop)
         self.layoutTabProcess.setAlignment(Qt.AlignHCenter | Qt.AlignTop)
@@ -47,8 +48,12 @@ class Window(QMainWindow, Ui_MainWindow):
         self.chkBoxWithTable.setEnabled(False)
         self.progressBarBlue.setVisible(False)
         self.loadedDataFile = False
+        self.dataFileLoadingRequired = False
+        self.annotChangeMade = False
         self.lastDir = "."
         self.errorMessage=""
+        self.dataCopy = FrameHolder()
+        self.firstTimeStep3 = True
         
         # numeric validators
         self.threshMin = 0.0
@@ -64,7 +69,9 @@ class Window(QMainWindow, Ui_MainWindow):
         self.centerCombo(self.bxAnnotDelimiter)
         
         
+        
     def connectSignalsSlots(self):
+        self.lineDataFn.textChanged.connect(self.dataFileChange)
         self.btnDataFn.clicked.connect(self.selectFile)
         self.btnDataFnLoad.clicked.connect(self.loadHeaders)
         self.btnAnnotationsFn.clicked.connect(self.selectAnnotFile)
@@ -83,6 +90,11 @@ class Window(QMainWindow, Ui_MainWindow):
         self.chkBoxVertical.stateChanged.connect(self.restrictTableOption)
         self.actionExit.triggered.connect(self.close)
         self.actionInformation.triggered.connect(self.about)
+        self.bxChromAnn.activated.connect(self.annotChanged)
+        self.bxPosAnn.activated.connect(self.annotChanged)
+        self.bxIDAnn.activated.connect(self.annotChanged)
+        self.listOtherAnn.itemSelectionChanged.connect(self.annotChanged)
+        
  
     def centerCombo(self, box):
         line_edit = box.lineEdit()
@@ -116,7 +128,7 @@ class Window(QMainWindow, Ui_MainWindow):
             self.bxPvalueCol.currentText()])
         if len(cols) != 4:   
             QMessageBox.warning(self,"Error", "<p>Please set column names in data input file</p>")
-        else:
+        elif self.dataFileLoadingRequired == True:
             self.loadDataFile()
             if self.errorMessage != "":
                 QMessageBox.warning(self,"Error", f"<p>{self.errorMessage}</p>")
@@ -124,6 +136,7 @@ class Window(QMainWindow, Ui_MainWindow):
             else:
                 self.tabWidget.setCurrentIndex(2)
                 self.setActiveTab(2)
+                self.dataFileLoadingRequired = False
         
     
     def moveTab4(self):
@@ -140,6 +153,14 @@ class Window(QMainWindow, Ui_MainWindow):
         num = self.tabWidget.count()
         for i in range(num):
            self.tabWidget.setTabEnabled(i,False) if i != tabIndex else self.tabWidget.setTabEnabled(i,True)
+
+    def dataFileChange(self):
+        if self.lineDataFn.text() != self.prevDataFn:
+            self.prevDataFn = self.lineDataFn.text()
+            self.loadedDataFile = False
+            
+    def annotChanged(self):
+        self.annotChangeMade = True
 
     # add collapsible sections
     def addSections(self):
@@ -194,6 +215,7 @@ class Window(QMainWindow, Ui_MainWindow):
             else:
                 self.setSelectionColumns(self.headers)
                 self.loadedDataFile = True
+                self.dataFileLoadingRequired = True
     
     def loadDataFile(self):
         nrows = self.spinTestRows.value() if self.spinTestRows.value() > 0 else None
@@ -203,11 +225,11 @@ class Window(QMainWindow, Ui_MainWindow):
                        title=self.lineDataTitle.text(),
                        test_rows=nrows)
                        
-                       
         #use thread here
         self.thread = QThread()
         self.worker = FileWorker()
         self.worker.mp = self.mp
+        self.worker.copyHolder = self.dataCopy
         self.worker.delim = delimiter
         self.worker.moveToThread(self.thread)
         self.thread.started.connect(self.worker.loadDataFile)
@@ -222,6 +244,9 @@ class Window(QMainWindow, Ui_MainWindow):
         self.thread.finished.connect(self.dlg.deleteLater)
         self.thread.start()
         self.dlg.exec()
+                
+        self.firstTimeStep3 = True
+        
         
     
     def workerError(self):
@@ -239,10 +264,13 @@ class Window(QMainWindow, Ui_MainWindow):
             try:
                 self.annotDF = pd.read_csv(self.lineAnnotationsFn.text(), delimiter=self.getDelim(self.bxAnnotDelimiter.currentText()))
                 self.setAnnotColumns(self.annotDF.columns)
+                self.annotChanged()
             except Exception as ex:
                 traceback_str = ''.join(traceback.format_tb(ex.__traceback__))
                 QMessageBox.warning(self,"Error", "Loading file failed: " + str(ex) + "</p><p>Details: " +
                     traceback_str + "</p>")
+        else:
+            self.annotDF = pd.DataFrame()
         
         
     def selectKnownGenesFn(self):
@@ -258,6 +286,8 @@ class Window(QMainWindow, Ui_MainWindow):
                 traceback_str = ''.join(traceback.format_tb(ex.__traceback__))
                 QMessageBox.warning(self,"Error", "Loading file failed: " + str(ex) + "</p><p>Details: " +
                     traceback_str + "</p>")
+        else:
+            self.known_genes = []
     
     def saveImage(self):
         defaultName = os.path.join(self.lastDir, "neat.png")
@@ -305,34 +335,40 @@ class Window(QMainWindow, Ui_MainWindow):
                            self.bxPvalueCol.currentText() : 'P',
                            self.bxIDCol.currentText() : 'ID' }
 
-        if not self.annotDF.empty: 
+        if not self.annotDF.empty or self.annotChangeMade: 
             self.annotDF = self.annotDF.rename(columns={self.bxIDAnn.currentText(): 'ID',
               self.bxChromAnn.currentText(): '#CHROM', self.bxPosAnn.currentText(): 'POS'})
             addCols = [item.text() for item in self.listOtherAnn.selectedItems()]
-            #self.mp.add_annotations(self.annotDF, extra_cols=addCols)
-        #self.mp.get_thinned_data()
+            
+        # if it is the first time through this
+        # or the annotation changed then we add annotation and thin data again
+        if self.firstTimeStep3 or self.annotChangeMade:
+            self.mp.df = self.dataCopy.df.copy()
+            self.thread = QThread()
+            self.worker = FileWorker()
+            self.worker.mp = self.mp
+            #self.worker.delim = delimiter
+            self.worker.annotDF = self.annotDF
+            self.worker.columnMap = columnMap
+            self.worker.addCols = addCols
+            self.worker.copyHolder = self.dataCopy
+            self.worker.moveToThread(self.thread)
+            self.thread.started.connect(self.worker.thinData)
+            self.worker.finished.connect(self.thread.quit)
+            self.worker.exceptCaught.connect(self.thread.quit)
+            self.worker.exceptCaught.connect(self.workerError)
+            self.worker.finished.connect(self.worker.deleteLater)
+            self.thread.finished.connect(self.thread.deleteLater)
         
-        self.thread = QThread()
-        self.worker = FileWorker()
-        self.worker.mp = self.mp
-        #self.worker.delim = delimiter
-        self.worker.annotDF = self.annotDF
-        self.worker.columnMap = columnMap
-        self.worker.addCols = addCols
-        self.worker.moveToThread(self.thread)
-        self.thread.started.connect(self.worker.thinData)
-        self.worker.finished.connect(self.thread.quit)
-        self.worker.exceptCaught.connect(self.thread.quit)
-        self.worker.exceptCaught.connect(self.workerError)
-        self.worker.finished.connect(self.worker.deleteLater)
-        self.thread.finished.connect(self.thread.deleteLater)
-        
-        self.dlg = ProcessingDialog(self, message="Processing Data...")
-        self.thread.finished.connect(self.dlg.accept)
-        self.thread.finished.connect(self.dlg.deleteLater)
-        self.thread.finished.connect(self.fillPlotOptions)
-        self.thread.start()
-        self.dlg.exec()
+            self.dlg = ProcessingDialog(self, message="Processing Data...")
+            self.thread.finished.connect(self.dlg.accept)
+            self.thread.finished.connect(self.dlg.deleteLater)
+            self.thread.finished.connect(self.fillPlotOptions)
+            self.thread.start()
+            self.dlg.exec()
+            
+            self.annotChangeMade = False
+            self.firstTimeStep3 = False
         
         
     def fillPlotOptions(self):
@@ -569,12 +605,14 @@ class FileWorker(QObject):
     annotDF = pd.DataFrame()
     columnMap = {}
     plotParams={}
-    canvasPlot=None
+    canvasPlot = None
+    copyHolder = None
     
     
     def loadDataFile(self):
         try:
-            self.mp.load_data(delim=self.delim)    
+            self.mp.load_data(delim=self.delim) 
+            self.copyHolder.df = self.mp.df.copy()
         except Exception as ex:
             traceback_str = ''.join(traceback.format_tb(ex.__traceback__))
             self.errorStr = str(ex) + "<p>Details: " + traceback_str + "</p>"
@@ -584,6 +622,7 @@ class FileWorker(QObject):
     
     def thinData(self):
         try:
+            self.mp.df = self.copyHolder.df.copy()
             self.mp.clean_data(col_map=self.columnMap)
             if not self.annotDF.empty: 
                 self.mp.add_annotations(self.annotDF, extra_cols=self.addCols)
@@ -594,6 +633,11 @@ class FileWorker(QObject):
             self.exceptCaught.emit()
         else:
             self.finished.emit()
+            
+# For dataframe backup and manipulation
+class FrameHolder:
+    def __init__(self):
+        self.df = pd.DataFrame()
 
 def get_path(filename):
     if hasattr(sys, "_MEIPASS"):

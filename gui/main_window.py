@@ -594,9 +594,10 @@ class Ui_MainWindow(object):
         self.framePlot.setFont(font)
         self.framePlot.setFrameShape(QFrame.StyledPanel)
         self.framePlot.setFrameShadow(QFrame.Raised)
+        self.horizontalLayoutFrame = QHBoxLayout(self.framePlot)
+        self.horizontalLayoutFrame.setObjectName(u"horizontalLayoutFrame")
         self.progressBarBlue = QProgressBar(self.framePlot)
         self.progressBarBlue.setObjectName(u"progressBarBlue")
-        self.progressBarBlue.setGeometry(QRect(196, 364, 300, 80))
         self.progressBarBlue.setMinimumSize(QSize(300, 80))
         self.progressBarBlue.setMaximumSize(QSize(300, 80))
         self.progressBarBlue.setStyleSheet(u"#progressBarBlue {\n"
@@ -610,6 +611,9 @@ class Ui_MainWindow(object):
 "    margin: 0.5px;\n"
 "}")
         self.progressBarBlue.setValue(1)
+
+        self.horizontalLayoutFrame.addWidget(self.progressBarBlue)
+
 
         self.gridLayout_3.addWidget(self.framePlot, 0, 1, 1, 1)
 

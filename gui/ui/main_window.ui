@@ -1078,29 +1078,23 @@
         <property name="frameShadow">
          <enum>QFrame::Raised</enum>
         </property>
-        <widget class="QProgressBar" name="progressBarBlue">
-         <property name="geometry">
-          <rect>
-           <x>196</x>
-           <y>364</y>
-           <width>300</width>
-           <height>80</height>
-          </rect>
-         </property>
-         <property name="minimumSize">
-          <size>
-           <width>300</width>
-           <height>80</height>
-          </size>
-         </property>
-         <property name="maximumSize">
-          <size>
-           <width>300</width>
-           <height>80</height>
-          </size>
-         </property>
-         <property name="styleSheet">
-          <string notr="true">#progressBarBlue {
+        <layout class="QHBoxLayout" name="horizontalLayoutFrame">
+         <item>
+          <widget class="QProgressBar" name="progressBarBlue">
+           <property name="minimumSize">
+            <size>
+             <width>300</width>
+             <height>80</height>
+            </size>
+           </property>
+           <property name="maximumSize">
+            <size>
+             <width>300</width>
+             <height>80</height>
+            </size>
+           </property>
+           <property name="styleSheet">
+            <string notr="true">#progressBarBlue {
     border: 2px solid #2196F3;
     border-radius: 5px;
     background-color: #E0E0E0;
@@ -1110,11 +1104,13 @@
     width: 10px; 
     margin: 0.5px;
 }</string>
-         </property>
-         <property name="value">
-          <number>1</number>
-         </property>
-        </widget>
+           </property>
+           <property name="value">
+            <number>1</number>
+           </property>
+          </widget>
+         </item>
+        </layout>
        </widget>
       </item>
      </layout>
