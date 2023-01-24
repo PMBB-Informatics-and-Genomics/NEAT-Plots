@@ -91,8 +91,11 @@ class Window(QMainWindow, Ui_MainWindow):
         self.actionExit.triggered.connect(self.close)
         self.actionInformation.triggered.connect(self.about)
         self.bxChromAnn.activated.connect(self.annotChanged)
+        self.bxChromAnn.currentIndexChanged.connect(self.updateAnnotList)
         self.bxPosAnn.activated.connect(self.annotChanged)
+        self.bxPosAnn.currentIndexChanged.connect(self.updateAnnotList)
         self.bxIDAnn.activated.connect(self.annotChanged)
+        self.bxIDAnn.currentIndexChanged.connect(self.updateAnnotList)
         self.listOtherAnn.itemSelectionChanged.connect(self.annotChanged)
         
  
@@ -130,13 +133,14 @@ class Window(QMainWindow, Ui_MainWindow):
             QMessageBox.warning(self,"Error", "<p>Please set column names in data input file</p>")
         elif self.dataFileLoadingRequired == True:
             self.loadDataFile()
-            if self.errorMessage != "":
-                QMessageBox.warning(self,"Error", f"<p>{self.errorMessage}</p>")
-                self.errorMessage=""
-            else:
-                self.tabWidget.setCurrentIndex(2)
-                self.setActiveTab(2)
-                self.dataFileLoadingRequired = False
+            
+        if self.errorMessage != "":
+            QMessageBox.warning(self,"Error", f"<p>{self.errorMessage}</p>")
+            self.errorMessage=""
+        else:
+            self.tabWidget.setCurrentIndex(2)
+            self.setActiveTab(2)
+            self.dataFileLoadingRequired = False
         
     
     def moveTab4(self):
@@ -161,6 +165,21 @@ class Window(QMainWindow, Ui_MainWindow):
             
     def annotChanged(self):
         self.annotChangeMade = True
+
+    # hide items in annotation list for selecting other columns
+    # so that the renamed columns will not be used in the final plot causing
+    # an error  
+    def updateAnnotList(self):
+        selected = set([self.bxChromAnn.currentText(), self.bxPosAnn.currentText(), 
+            self.bxIDAnn.currentText()])
+        
+        for idx in range(self.listOtherAnn.count()):
+            if self.listOtherAnn.item(idx).text() in selected:
+                self.listOtherAnn.item(idx).setHidden(True)
+            else:
+                self.listOtherAnn.item(idx).setHidden(False)
+                self.listOtherAnn.item(idx).setSelected(False)
+
 
     # add collapsible sections
     def addSections(self):
