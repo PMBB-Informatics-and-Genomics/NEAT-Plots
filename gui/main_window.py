@@ -219,6 +219,16 @@ class Ui_MainWindow(object):
 
         self.formLayout_3.setWidget(3, QFormLayout.FieldRole, self.bxPvalueCol)
 
+        self.lblLog10Pval = QLabel(self.groupBoxSelectCols)
+        self.lblLog10Pval.setObjectName(u"lblLog10Pval")
+
+        self.formLayout_3.setWidget(4, QFormLayout.LabelRole, self.lblLog10Pval)
+
+        self.chkBxLog10Pval = QCheckBox(self.groupBoxSelectCols)
+        self.chkBxLog10Pval.setObjectName(u"chkBxLog10Pval")
+
+        self.formLayout_3.setWidget(4, QFormLayout.FieldRole, self.chkBxLog10Pval)
+
 
         self.layoutTabProcess.addWidget(self.groupBoxSelectCols)
 
@@ -756,6 +766,14 @@ class Ui_MainWindow(object):
 #if QT_CONFIG(tooltip)
         self.bxPvalueCol.setToolTip(QCoreApplication.translate("MainWindow", u"Column header in input file", None))
 #endif // QT_CONFIG(tooltip)
+#if QT_CONFIG(tooltip)
+        self.lblLog10Pval.setToolTip(QCoreApplication.translate("MainWindow", u"Add check if P-value column contains -log10 values", None))
+#endif // QT_CONFIG(tooltip)
+        self.lblLog10Pval.setText(QCoreApplication.translate("MainWindow", u"-log10 P-values?", None))
+#if QT_CONFIG(tooltip)
+        self.chkBxLog10Pval.setToolTip(QCoreApplication.translate("MainWindow", u"Add check if P-value column contains -log10 values", None))
+#endif // QT_CONFIG(tooltip)
+        self.chkBxLog10Pval.setText("")
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.tabProcess), QCoreApplication.translate("MainWindow", u"Process", None))
         self.btnPrev2.setText(QCoreApplication.translate("MainWindow", u"Previous", None))
         self.btnNext3.setText(QCoreApplication.translate("MainWindow", u"Next", None))

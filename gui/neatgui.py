@@ -351,8 +351,14 @@ class Window(QMainWindow, Ui_MainWindow):
         addCols = []
         columnMap = { self.bxChromCol.currentText() : '#CHROM',
                            self.bxPosCol.currentText() : 'POS' ,
-                           self.bxPvalueCol.currentText() : 'P',
+#                           self.bxPvalueCol.currentText() : 'P',
                            self.bxIDCol.currentText() : 'ID' }
+        # only set P value when it is not a logp column
+        logpcol = None
+        if self.chkBxLog10Pval.isChecked():
+            logpcol = self.bxPvalueCol.currentText()
+        else:
+            columnMap[self.bxPvalueCol.currentText()]='P'
 
         if not self.annotDF.empty or self.annotChangeMade: 
             self.annotDF = self.annotDF.rename(columns={self.bxIDAnn.currentText(): 'ID',
@@ -371,6 +377,7 @@ class Window(QMainWindow, Ui_MainWindow):
             self.worker.columnMap = columnMap
             self.worker.addCols = addCols
             self.worker.copyHolder = self.dataCopy
+            self.worker.logp = logpcol
             self.worker.moveToThread(self.thread)
             self.thread.started.connect(self.worker.thinData)
             self.worker.finished.connect(self.thread.quit)
@@ -626,6 +633,7 @@ class FileWorker(QObject):
     plotParams={}
     canvasPlot = None
     copyHolder = None
+    logp = None
     
     
     def loadDataFile(self):
@@ -642,7 +650,7 @@ class FileWorker(QObject):
     def thinData(self):
         try:
             self.mp.df = self.copyHolder.df.copy()
-            self.mp.clean_data(col_map=self.columnMap)
+            self.mp.clean_data(col_map=self.columnMap, logp=self.logp)
             if not self.annotDF.empty: 
                 self.mp.add_annotations(self.annotDF, extra_cols=self.addCols)
             self.mp.get_thinned_data()
