@@ -54,6 +54,7 @@ class Window(QMainWindow, Ui_MainWindow):
         self.errorMessage=""
         self.dataCopy = FrameHolder()
         self.firstTimeStep3 = True
+        self.pColumnName = 'PFIXNAME-LIB'
         
         # numeric validators
         self.threshMin = 0.0
@@ -249,6 +250,7 @@ class Window(QMainWindow, Ui_MainWindow):
         self.worker = FileWorker()
         self.worker.mp = self.mp
         self.worker.copyHolder = self.dataCopy
+        self.worker.pColNameFix = self.pColumnName
         self.worker.delim = delimiter
         self.worker.moveToThread(self.thread)
         self.thread.started.connect(self.worker.loadDataFile)
@@ -356,9 +358,15 @@ class Window(QMainWindow, Ui_MainWindow):
         # only set P value when it is not a logp column
         logpcol = None
         if self.chkBxLog10Pval.isChecked():
-            logpcol = self.bxPvalueCol.currentText()
+            if self.bxPvalueCol.currentText() == 'P':
+                logpcol = self.pColumnName
+            else:
+                logpcol = self.bxPvalueCol.currentText()
         else:
-            columnMap[self.bxPvalueCol.currentText()]='P'
+            if self.bxPvalueCol.currentText() == 'P':
+                columnMap[self.pColumnName]='P'
+            else:
+                columnMap[self.bxPvalueCol.currentText()]='P'
 
         if not self.annotDF.empty or self.annotChangeMade: 
             self.annotDF = self.annotDF.rename(columns={self.bxIDAnn.currentText(): 'ID',
@@ -634,11 +642,14 @@ class FileWorker(QObject):
     canvasPlot = None
     copyHolder = None
     logp = None
+    pColNameFix='PFIXNAME-LIB'
     
     
     def loadDataFile(self):
         try:
             self.mp.load_data(delim=self.delim) 
+            if 'P' in self.mp.df.columns:
+                self.mp.df.rename(columns={'P':self.pColNameFix}, inplace=True)
             self.copyHolder.df = self.mp.df.copy()
         except Exception as ex:
             traceback_str = ''.join(traceback.format_tb(ex.__traceback__))
