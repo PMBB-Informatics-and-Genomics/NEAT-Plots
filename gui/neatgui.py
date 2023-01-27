@@ -36,6 +36,7 @@ class Window(QMainWindow, Ui_MainWindow):
         self.known_genes = []
         self.canvasPlot = None
         self.prevDataFn = ""
+        self.prevGeneFn = ""
         
         self.layoutTabPlot.setAlignment(Qt.AlignHCenter | Qt.AlignTop)
         self.layoutTabProcess.setAlignment(Qt.AlignHCenter | Qt.AlignTop)
@@ -48,6 +49,7 @@ class Window(QMainWindow, Ui_MainWindow):
         self.chkBoxWithTable.setEnabled(False)
         self.progressBarBlue.setVisible(False)
         self.loadedDataFile = False
+        self.loadedGeneFile = False
         self.dataFileLoadingRequired = False
         self.annotChangeMade = False
         self.lastDir = "."
@@ -73,6 +75,7 @@ class Window(QMainWindow, Ui_MainWindow):
         
     def connectSignalsSlots(self):
         self.lineDataFn.textChanged.connect(self.dataFileChange)
+        self.lineKnownGenesFn.textChanged.connect(self.geneFileChange)
         self.btnDataFn.clicked.connect(self.selectFile)
         self.btnDataFnLoad.clicked.connect(self.loadHeaders)
         self.btnAnnotationsFn.clicked.connect(self.selectAnnotFile)
@@ -150,6 +153,9 @@ class Window(QMainWindow, Ui_MainWindow):
             if len(cols) != 3:   
                 QMessageBox.warning(self,"Error", "<p>Please set column names for annotation file</p>")
                 return
+        if not self.loadedGeneFile and self.lineKnownGenesFn.text() != "":
+            QMessageBox.warning(self,"Error", "<p>Please load known genes file before proceeding</p>")
+            return
         self.addAnnotation()
         self.tabWidget.setCurrentIndex(3)
         self.setActiveTab(3)
@@ -163,6 +169,11 @@ class Window(QMainWindow, Ui_MainWindow):
         if self.lineDataFn.text() != self.prevDataFn:
             self.prevDataFn = self.lineDataFn.text()
             self.loadedDataFile = False
+    
+    def geneFileChange(self):
+        if self.lineKnownGenesFn.text() != self.prevGeneFn:
+            self.prevGeneFn = self.lineKnownGenesFn.text()
+            self.loadedGeneFile = False
             
     def annotChanged(self):
         self.annotChangeMade = True
@@ -303,6 +314,7 @@ class Window(QMainWindow, Ui_MainWindow):
         if self.lineKnownGenesFn.text() != "":
             try: 
                 self.known_genes = open(self.lineKnownGenesFn.text()).read().splitlines()
+                self.loadedGeneFile = True
             except Exception as ex:
                 traceback_str = ''.join(traceback.format_tb(ex.__traceback__))
                 QMessageBox.warning(self,"Error", "Loading file failed: " + str(ex) + "</p><p>Details: " +
