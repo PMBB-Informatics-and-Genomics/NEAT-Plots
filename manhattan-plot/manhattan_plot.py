@@ -48,7 +48,7 @@ class ManhattanPlot:
     annotate = True
     signal_color_col = None
     phewas_updown_col, phewas_rep_color_col = None, None
-    phewas_size_col, phewas_annotate_col = None, None
+    phewas_size_col, phewas_annotate_col, phewas_fill_col = None, None, None
     twas_color_col, twas_updown_col = None, None
 
     ld_block = 4E5
@@ -61,10 +61,14 @@ class ManhattanPlot:
     invert = False
     merge_genes = False
     max_log_p = None
+    signal_rep_map = {}
 
     fig, base_ax, table_ax, cbar_ax = None, None, None, None
+    lower_base_ax, upper_base_ax = None, None
     annot_list = []
     spec_genes = []
+
+    log_p_axis_midpoint = None
 
     DARK_CHR_COLOR = '#5841bf'
     LIGHT_CHR_COLOR = '#648fff'
@@ -75,6 +79,7 @@ class ManhattanPlot:
     FIFTH_COLOR = '#d45c00'
     TABLE_HEAD_COLOR = '#9e9e9e'
     COLOR_MAP = 'turbo_r'
+    # COLOR_MAP = 'Paired'
 
 
     CHR_POS_ROUND = 5E4
@@ -148,7 +153,7 @@ class ManhattanPlot:
         print('Loaded', len(self.df), 'Rows')
         print(self.df.columns)
 
-    def clean_data(self, col_map=None, logp=None):
+    def clean_data(self, col_map=None, logp=None, has_chr_prefix=False):
         """
         Edits/reformats the loaded table to make it compatible with plotting code
         :param col_map: Dictionary mapping existing columns to required columns: #CHROM, POS, ID, and P
@@ -166,6 +171,8 @@ class ManhattanPlot:
         if logp is not None:
             self.df['P'] = 10 ** - self.df[logp]
 
+        if has_chr_prefix:
+            self.df['#CHROM'] = self.df['#CHROM'].str[3:]
         # df = df[df['#CHROM'] != 'X']
         chromosomes = list(range(1, 23))
         chromosomes.extend([str(i) for i in range(1, 23)])
@@ -178,7 +185,8 @@ class ManhattanPlot:
         self.df = self.df.sort_values(by=['#CHROM', 'POS'])
         self.df['ID'] = self.df['ID'].fillna('')
 
-        self.df['P'] = self.df['P'].replace(0, min(self.df['P']) / 100)
+        self.df['P'] = pd.to_numeric(self.df['P'], errors='coerce')
+        self.df['P'] = self.df['P'].replace(0, self.df['P'].min() / 100)
 
     def check_data(self):
         """
@@ -204,10 +212,11 @@ class ManhattanPlot:
         self.df['ID_x'].update(self.df['ID_y'])
         self.df = self.df.rename(columns={'ID_x': 'ID'})
 
-    def update_plotting_parameters(self, annotate='', signal_color_col='', phewas_rep_color_col='', phewas_updown_col='', phewas_size_col='', phewas_annotate_col='', twas_color_col='', twas_updown_col='', sig='', sug='', annot_thresh='', ld_block='', vertical='', max_log_p='', invert='', merge_genes='', title=''):
+    def update_plotting_parameters(self, log_p_axis_midpoint='', annotate='', signal_color_col='', phewas_rep_color_col='', phewas_updown_col='', phewas_size_col='', phewas_annotate_col='', phewas_fill_col='', twas_color_col='', twas_updown_col='', sig='', sug='', annot_thresh='', ld_block='', vertical='', max_log_p='', invert='', merge_genes='', title=''):
         self.annotate = self.__update_param(self.annotate, annotate)
         self.ld_block = self.__update_param(self.ld_block, ld_block)
         self.title = self.__update_param(self.title, title)
+        self.log_p_axis_midpoint = self.__update_param(self.log_p_axis_midpoint, log_p_axis_midpoint)
 
         self.signal_color_col = self.__update_param(self.signal_color_col, signal_color_col)
 
@@ -215,6 +224,7 @@ class ManhattanPlot:
         self.phewas_updown_col = self.__update_param(self.phewas_updown_col, phewas_updown_col)
         self.phewas_size_col = self.__update_param(self.phewas_size_col, phewas_size_col)
         self.phewas_annotate_col = self.__update_param(self.phewas_annotate_col, phewas_annotate_col)
+        self.phewas_fill_col = self.__update_param(self.phewas_fill_col, phewas_fill_col)
 
         self.twas_updown_col = self.__update_param(self.twas_updown_col, twas_updown_col)
         self.twas_color_col = self.__update_param(self.twas_color_col, twas_color_col)
@@ -243,14 +253,16 @@ class ManhattanPlot:
             params['Edge Color Column'] = self.signal_color_col
         print(params)
 
-    def get_thinned_data(self, log_p_round=2):
+    def get_thinned_data(self, log_p_round=2, additional_cols=[]):
         if 'ABS_POS' not in self.df.columns:
             self.df['ABS_POS'] = self.__get_absolute_positions(self.df)
 
         self.thinned = self.df.copy()
         self.thinned['ROUNDED_X'] = self.thinned['ABS_POS'] // self.CHR_POS_ROUND * self.CHR_POS_ROUND
         self.thinned['ROUNDED_Y'] = pd.Series(-np.log10(self.thinned['P'])).round(log_p_round)  # round to 2 decimals
-        self.thinned = self.thinned.sort_values(by='P').drop_duplicates(subset=['ROUNDED_X', 'ROUNDED_Y'])
+        subset_cols = ['ROUNDED_X', 'ROUNDED_Y']
+        subset_cols.extend(additional_cols)
+        self.thinned = self.thinned.sort_values(by='P').drop_duplicates(subset=subset_cols)
         print(len(self.thinned), 'Variants After Thinning')
 
     def print_hits(self):
@@ -366,6 +378,11 @@ class ManhattanPlot:
         annotDF = annotDF[full_mask].set_index('ID')
 
         for signalID, row in annotDF.iterrows():
+            signal_gene = signalID
+            if rep_boost and signalID in self.signal_rep_map.keys():
+                new_gene = self.signal_rep_map[signalID]
+                signalID = new_gene
+                row.name = new_gene
             plot = True
             if signalID in alreadyPlottedGenes:
                 plot = False
@@ -380,7 +397,7 @@ class ManhattanPlot:
                 plot = False
             if plot:
                 # self.base_ax.annotate(signalID, xy=(row[self.plot_x_col], row[self.plot_y_col]), va='center', ha='left')
-                signalDF = annotDF.loc[annotDF.index == signalID]
+                signalDF = annotDF.loc[annotDF.index == signal_gene]
                 if self.vertical:
                     if self.max_log_p is not None:
                         pointer_x = signalDF[signalDF[self.plot_x_col] <= self.max_log_p][self.plot_x_col].max()
@@ -415,10 +432,7 @@ class ManhattanPlot:
                                   [row[self.plot_y_col], row[self.plot_y_col]],
                                   c='silver', linewidth=1.5, alpha=1)
             else:
-                if self.max_log_p is not None:
-                    pointer_y = signalDF[signalDF[self.plot_y_col] <= self.max_log_p][self.plot_y_col].max()
-                else:
-                    pointer_y = signalDF[self.plot_y_col].max()
+                pointer_y = row[self.plot_y_col]
                 self.base_ax.plot([row[self.plot_x_col], row[self.plot_x_col]],
                                   [pointer_y, self.max_y],
                                   c='silver', linewidth=1.5, alpha=1)
@@ -586,8 +600,11 @@ class ManhattanPlot:
         plt.xlim(0, np.ceil(max_log))
         plt.ylim(0, np.ceil(max(plot_df['Log P'])))
         plt.tight_layout()
+
         if save is not None:
             plt.savefig(save, dpi=save_res)
+            plot_df.to_csv(save.replace('.png', '.csv'))
+
         # plt.show()
         # plt.clf()
 
@@ -617,8 +634,13 @@ class ManhattanPlot:
         self.df = self.df[self.df['P'] < 5E-8]
         unique_snps = self.df['ID'].unique()
         x_map = pd.Series(index=unique_snps, data=np.arange(len(unique_snps)) + 1)
+
         for x in x_map.values:
-            self.base_ax.axvline(x, c='silver', zorder=0)
+            if self.log_p_axis_midpoint is None:
+                self.base_ax.axvline(x, c='silver', zorder=0)
+            else:
+                self.lower_base_ax.axvline(x, c='silver', zorder=0)
+                self.upper_base_ax.axvline(x, c='silver', zorder=0)
 
         unique_traits = list(self.df['TRAIT'].dropna().unique())
         categories = sorted(unique_traits)
@@ -626,16 +648,47 @@ class ManhattanPlot:
         cat_num_list = [cat_to_num[t] for t in self.df['TRAIT'].dropna()]
 
         self.fig.set_facecolor('w')
-        scat = self.base_ax.scatter(x=x_map.loc[self.df.dropna(subset='TRAIT')['ID']],
-                                    y=-np.log10(self.df.dropna(subset='TRAIT')['P']),
-                                    c=cat_num_list,
-                                    cmap=plt.cm.get_cmap(self.COLOR_MAP, len(categories)),
-                                    s=60, zorder=10)
-        self.base_ax.set_xticks(x_map.values)
-        self.base_ax.set_xticklabels(x_map.index, rotation=30, ha='right')
-        self.base_ax.set_xlabel('Search Identifiers')
-        self.base_ax.set_ylabel('-Log10 P Value (Reported)')
-        self.base_ax.set_ylim(0, self.max_log_p)
+
+        if self.log_p_axis_midpoint is None:
+            scat = self.base_ax.scatter(x=x_map.loc[self.df.dropna(subset='TRAIT')['ID']],
+                                        y=-np.log10(self.df.dropna(subset='TRAIT')['P']),
+                                        c=cat_num_list,
+                                        cmap=plt.cm.get_cmap(self.COLOR_MAP, len(categories)),
+                                        s=60, zorder=10)
+            self.base_ax.set_xticks(x_map.values)
+            self.base_ax.set_xticklabels(x_map.index, rotation=30, ha='right')
+            self.base_ax.set_xlabel('Search Identifiers')
+            self.base_ax.set_ylabel('-Log10 P Value (Reported)')
+            self.base_ax.set_ylim(0, self.max_log_p)
+        else:
+            self.upper_base_ax.scatter(x=x_map.loc[self.df.dropna(subset='TRAIT')['ID']],
+                                       y=-np.log10(self.df.dropna(subset='TRAIT')['P']),
+                                       c=cat_num_list,
+                                       cmap=plt.cm.get_cmap(self.COLOR_MAP, len(categories)),
+                                       s=60, zorder=10)
+
+            scat = self.lower_base_ax.scatter(x=x_map.loc[self.df.dropna(subset='TRAIT')['ID']],
+                                              y=-np.log10(self.df.dropna(subset='TRAIT')['P']),
+                                              c=cat_num_list,
+                                              cmap=plt.cm.get_cmap(self.COLOR_MAP, len(categories)),
+                                              s=60, zorder=10)
+
+            self.lower_base_ax.set_xticks(x_map.values)
+            self.lower_base_ax.set_xticklabels(x_map.index, rotation=30, ha='right')
+            self.lower_base_ax.set_xlabel('Search Identifiers')
+            self.lower_base_ax.set_ylabel('-Log10 P Value (Reported)')
+
+            self.lower_base_ax.set_ylim(0, self.log_p_axis_midpoint)
+            self.upper_base_ax.set_ylim(self.log_p_axis_midpoint, self.max_log_p)
+
+            if not self.invert:
+                self.lower_base_ax.spines['top'].set_visible(False)
+                self.upper_base_ax.spines['bottom'].set_visible(False)
+            else:
+                self.upper_base_ax.spines['top'].set_visible(False)
+                self.lower_base_ax.spines['bottom'].set_visible(False)
+
+
         print(categories, cat_to_num, unique_traits)
         self.__add_color_bar(scat, categories)
 
@@ -682,66 +735,110 @@ class ManhattanPlot:
     def __config_axes(self, with_table=True):
         need_cbar = (self.signal_color_col is not None) or (self.twas_color_col is not None)
 
-        if self.vertical and not need_cbar and with_table:
-            # Vertical, no color bar, table
-            self.fig, axes = plt.subplots(nrows=1, ncols=2)
-            self.fig.set_size_inches(12, 12)
-            if not self.invert:
-                self.base_ax = axes[0]
+        if self.log_p_axis_midpoint is None:
+            if self.vertical and not need_cbar and with_table:
+                # Vertical, no color bar, table
+                self.fig, axes = plt.subplots(nrows=1, ncols=2)
+                self.fig.set_size_inches(12, 12)
+                if not self.invert:
+                    self.base_ax = axes[0]
+                    self.table_ax = axes[1]
+                else:
+                    self.base_ax = axes[1]
+                    self.table_ax = axes[0]
+
+            elif not self.vertical and not need_cbar and with_table:
+                # Horizontal, no color bar, table
+                print('Horizontal, no color bar')
+                ratios = [0.4, 1] if not self.invert else [1, 0.4]
+                self.fig, axes = plt.subplots(nrows=2, ncols=1,
+                                              gridspec_kw={'height_ratios': ratios})
+                self.fig.set_size_inches(14.4, 6)
+                if not self.invert:
+                    self.table_ax = axes[0]
+                    self.base_ax = axes[1]
+                else:
+                    self.table_ax = axes[1]
+                    self.base_ax = axes[0]
+
+            elif not self.vertical and need_cbar and with_table:
+                # Horizontal, color bar, table
+                ratios = [0.08, 0.45, 1] if not self.invert else [1, 0.45, 0.08]
+                self.fig, axes = plt.subplots(nrows=3, ncols=1,
+                                              gridspec_kw={'height_ratios': ratios})
+                self.fig.set_size_inches(14.4, 6)
                 self.table_ax = axes[1]
+
+                if not self.invert:
+                    self.cbar_ax = axes[0]
+                    self.base_ax = axes[2]
+                else:
+                    self.cbar_ax = axes[2]
+                    self.base_ax = axes[0]
+
+            elif not self.vertical and need_cbar and not with_table:
+                # Horizontal, color bar, no table
+                ratios = [0.08, 1] if not self.invert else [1, 0.08]
+                self.fig, axes = plt.subplots(nrows=2, ncols=1,
+                                              gridspec_kw={'height_ratios': ratios})
+                self.fig.set_size_inches(14.4, 4)
+
+                if not self.invert:
+                    self.cbar_ax = axes[0]
+                    self.base_ax = axes[1]
+                else:
+                    self.cbar_ax = axes[1]
+                    self.base_ax = axes[0]
+
+            elif not self.vertical and not need_cbar and not with_table:
+                # Horizontal, no color bar, no table
+                self.fig, self.base_ax = plt.subplots()
+                self.fig.set_size_inches(13, 3)
+
             else:
-                self.base_ax = axes[1]
-                self.table_ax = axes[0]
-        elif not self.vertical and not need_cbar and with_table:
-            # Horizontal, no color bar, table
-            print('Horizontal, no color bar')
-            ratios = [0.4, 1] if not self.invert else [1, 0.4]
-            self.fig, axes = plt.subplots(nrows=2, ncols=1,
-                                          gridspec_kw={'height_ratios': ratios})
-            self.fig.set_size_inches(14.4, 6)
-            if not self.invert:
-                self.table_ax = axes[0]
-                self.base_ax = axes[1]
+                print('No support for your configuration...')
+
+        elif self.log_p_axis_midpoint is not None:
+
+            if not self.vertical and need_cbar and with_table:
+                # Horizontal, color bar, table
+                ratios = [0.08, 0.45, 0.5, 0.5] if not self.invert else [0.5, 0.5, 0.45, 0.08]
+
+                self.fig, axes = plt.subplots(nrows=4, ncols=1,
+                                              gridspec_kw={'height_ratios': ratios, 'hspace': 0.05})
+
+                self.fig.set_size_inches(14.4, 6)
+
+                if not self.invert:
+                    self.cbar_ax = axes[0]
+                    self.table_ax = axes[1]
+                    self.upper_base_ax = axes[2]
+                    self.lower_base_ax = axes[3]
+                else:
+                    self.cbar_ax = axes[3]
+                    self.table_ax = axes[2]
+                    self.upper_base_ax = axes[1]
+                    self.lower_base_ax = axes[0]
+
+            elif not self.vertical and need_cbar and not with_table:
+                # Horizontal, color bar, no table
+                ratios = [0.08, 0.5, 0.5] if not self.invert else [0.5, 0.5, 0.08]
+                self.fig, axes = plt.subplots(nrows=3, ncols=1,
+                                              gridspec_kw={'height_ratios': ratios, 'hspace': 0})
+                self.fig.set_size_inches(14.4, 4)
+
+                if not self.invert:
+                    self.cbar_ax = axes[0]
+                    self.upper_base_ax = axes[1]
+                    self.lower_base_ax = axes[2]
+                else:
+                    self.cbar_ax = axes[2]
+                    self.upper_base_ax = axes[1]
+                    self.lower_base_ax = axes[0]
+
             else:
-                self.table_ax = axes[1]
-                self.base_ax = axes[0]
+                print('No support for your configuration...')
 
-        elif not self.vertical and need_cbar and with_table:
-            # Horizontal, color bar, table
-            ratios = [0.08, 0.45, 1] if not self.invert else [1, 0.45, 0.08]
-            self.fig, axes = plt.subplots(nrows=3, ncols=1,
-                                          gridspec_kw={'height_ratios': ratios})
-            self.fig.set_size_inches(14.4, 6)
-            self.table_ax = axes[1]
-
-            if not self.invert:
-                self.cbar_ax = axes[0]
-                self.base_ax = axes[2]
-            else:
-                self.cbar_ax = axes[2]
-                self.base_ax = axes[0]
-
-        elif not self.vertical and need_cbar and not with_table:
-            # Horizontal, color bar, no table
-            ratios = [0.08, 1] if not self.invert else [1, 0.08]
-            self.fig, axes = plt.subplots(nrows=2, ncols=1,
-                                          gridspec_kw={'height_ratios': ratios})
-            self.fig.set_size_inches(14.4, 4)
-
-            if not self.invert:
-                self.cbar_ax = axes[0]
-                self.base_ax = axes[1]
-            else:
-                self.cbar_ax = axes[1]
-                self.base_ax = axes[0]
-
-        elif not self.vertical and not need_cbar and not with_table:
-            # Horizontal, no color bar, no table
-            self.fig, self.base_ax = plt.subplots()
-            self.fig.set_size_inches(13, 3)
-
-        else:
-            print('No support for your configuration...')
 
         if self.vertical and self.invert:
             self.base_ax.invert_xaxis()
@@ -835,6 +932,7 @@ class ManhattanPlot:
         test_df = test_df.sort_values(by='P')
 
         signal_genes = []
+        self.signal_rep_map = {}
 
         for rowID, row in test_df.iterrows():
             if rep_boost:
@@ -851,11 +949,15 @@ class ManhattanPlot:
             chr_pos_mask = chr_df['ROUNDED_X'].between(x - halfLD, x + halfLD)
             chr_pos_idx = chr_df.index[chr_pos_mask]
 
-            if self.merge_genes and np.any(chr_df.loc[chr_pos_idx, 'ID'].isin(rep_genes)):
+            if rep_boost and self.merge_genes and np.any(chr_df.loc[chr_pos_idx, 'ID'].isin(rep_genes)):
                 window_genes = chr_df.loc[chr_pos_idx, ['ID', 'P']].set_index('ID')
                 window_genes = window_genes[window_genes.index.isin(rep_genes)]
                 new_gene = window_genes.idxmin().values[0]
-                self.thinned.loc[chr_pos_idx, 'ID'] = new_gene
+                if row['#CHROM'] % 2 == 1:
+                    odds_df.loc[chr_pos_idx, 'ID'] = new_gene
+                else:
+                    evens_df.loc[chr_pos_idx, 'ID'] = new_gene
+                self.signal_rep_map[gene] = new_gene
                 gene = new_gene
 
             currentRep = chr_df.loc[chr_pos_idx, 'Replication']
@@ -873,6 +975,9 @@ class ManhattanPlot:
 
         odds_df = odds_df[odds_df['SIGNAL']]
         evens_df = evens_df[evens_df['SIGNAL']]
+
+        print('Due to signal merging and replication prioritization, the following genes were renamed:')
+        print('\n'.join([k + ': ' + v for k, v in self.signal_rep_map.items()]))
 
         return odds_df, evens_df
 
@@ -1032,15 +1137,62 @@ class ManhattanPlot:
 
                 for updown, subDF in odds_df.groupby('up'):
                     shape = '^' if updown else 'v'
-                    self.base_ax.scatter(subDF[self.plot_x_col], subDF[self.plot_y_col], c=subDF['Cat_Num'],
-                                         cmap=plt.cm.get_cmap(self.COLOR_MAP, len(categories)),
-                                         s=subDF['pt_sz'], marker=shape, edgecolors='k', linewidth=0.3)
+                    if self.phewas_fill_col is None:
+                        self.base_ax.scatter(subDF[self.plot_x_col], subDF[self.plot_y_col], c=subDF['Cat_Num'],
+                                             cmap=plt.cm.get_cmap(self.COLOR_MAP, len(categories)),
+                                             s=subDF['pt_sz'], marker=shape, edgecolors='k', linewidth=0.3)
+                    elif self.phewas_fill_col is not None:
+                        print('Updown and Fill', flush=True)
+                        color_map = plt.cm.get_cmap(self.COLOR_MAP, len(categories))
+                        edge_color_list = subDF['Cat_Num'].apply(lambda x: color_map(x))
+                        face_color_list = subDF[['Cat_Num', self.phewas_fill_col]].apply(lambda x: color_map(x['Cat_Num']) if x[self.phewas_fill_col] else 'none', axis=1)
+                        print(face_color_list.value_counts())
+                        self.base_ax.scatter(subDF[self.plot_x_col], subDF[self.plot_y_col],
+                                             s=subDF['pt_sz'], marker=shape,
+                                             edgecolors=edge_color_list.values, linewidth=1,
+                                             facecolors=face_color_list.values)
+
+                        unique_vals = sorted(categories)
+                        cmap = plt.cm.get_cmap(self.COLOR_MAP, len(unique_vals))
+                        fractions = (np.arange(len(unique_vals)) / len(unique_vals)) + (0.5 / len(unique_vals))
+                        colors = [cmap(f) for f in fractions]
+                        color_map = dict(zip(unique_vals, colors))
+
+                        fractions = list(fractions)
+                        fractions.append(1.0)
+                        new_norm = mpl.colors.BoundaryNorm(boundaries=np.arange(len(unique_vals) + 1),
+                                                           ncolors=len(unique_vals))
+                        scat = plt.cm.ScalarMappable(norm=new_norm,
+                                                     cmap=plt.cm.get_cmap(self.COLOR_MAP, len(unique_vals)))
 
                 for updown, subDF in evens_df.groupby('up'):
                     shape = '^' if updown else 'v'
-                    scat = self.base_ax.scatter(subDF[self.plot_x_col], subDF[self.plot_y_col],
-                                                c=subDF['Cat_Num'], cmap=plt.cm.get_cmap(self.COLOR_MAP, len(categories)),
-                                                s=subDF['pt_sz'], marker=shape, edgecolors='k', linewidth=0.3)
+                    if self.phewas_fill_col is None:
+                        scat = self.base_ax.scatter(subDF[self.plot_x_col], subDF[self.plot_y_col],
+                                                    c=subDF['Cat_Num'], cmap=plt.cm.get_cmap(self.COLOR_MAP, len(categories)),
+                                                    s=subDF['pt_sz'], marker=shape, edgecolors='k', linewidth=0.3)
+                    elif self.phewas_fill_col is not None:
+                        print('Updown and Fill', flush=True)
+                        color_map = plt.cm.get_cmap(self.COLOR_MAP, len(categories))
+                        edge_color_list = subDF['Cat_Num'].apply(lambda x: color_map(x))
+                        face_color_list = subDF[['Cat_Num', self.phewas_fill_col]].apply(lambda x: color_map(x['Cat_Num']) if x[self.phewas_fill_col] else 'none', axis=1)
+                        print(face_color_list.value_counts())
+                        self.base_ax.scatter(subDF[self.plot_x_col], subDF[self.plot_y_col],
+                                             s=subDF['pt_sz'], marker=shape,
+                                             edgecolors=edge_color_list.values, linewidth=1,
+                                             facecolors=face_color_list.values)
+
+                        unique_vals = sorted(categories)
+                        cmap = plt.cm.get_cmap(self.COLOR_MAP, len(unique_vals))
+                        fractions = (np.arange(len(unique_vals)) / len(unique_vals)) + (0.5 / len(unique_vals))
+                        colors = [cmap(f) for f in fractions]
+                        color_map = dict(zip(unique_vals, colors))
+
+                        fractions = list(fractions)
+                        fractions.append(1.0)
+                        new_norm = mpl.colors.BoundaryNorm(boundaries=np.arange(len(unique_vals) + 1),
+                                                           ncolors=len(unique_vals))
+                        scat = plt.cm.ScalarMappable(norm=new_norm, cmap=plt.cm.get_cmap(self.COLOR_MAP, len(unique_vals)))
 
             self.__add_color_bar(scat, categories)
 
@@ -1163,7 +1315,7 @@ class ManhattanPlot:
                 cell.get_text().set_rotation(45)
                 cell.get_text().set_verticalalignment('bottom')
                 cell.get_text().set_horizontalalignment('left')
-                cell.get_text().set_fontsize(cell.get_text().get_fontsize() + 5)
+            cell.get_text().set_fontsize(cell.get_text().get_fontsize() + 5)
 
         for i in range(num_cols):
             connection_row = annotTable.iloc[i]
