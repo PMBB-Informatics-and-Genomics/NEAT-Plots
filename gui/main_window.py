@@ -36,10 +36,10 @@ class Ui_MainWindow(object):
         self.actionInformation.setObjectName(u"actionInformation")
         self.centralwidget = QWidget(MainWindow)
         self.centralwidget.setObjectName(u"centralwidget")
-        self.verticalLayout = QVBoxLayout(self.centralwidget)
-        self.verticalLayout.setObjectName(u"verticalLayout")
-        self.horizontalLayoutCentral = QHBoxLayout()
-        self.horizontalLayoutCentral.setObjectName(u"horizontalLayoutCentral")
+        self.gridLayout_2 = QGridLayout(self.centralwidget)
+        self.gridLayout_2.setObjectName(u"gridLayout_2")
+        self.gridLayout_3 = QGridLayout()
+        self.gridLayout_3.setObjectName(u"gridLayout_3")
         self.tabWidget = QTabWidget(self.centralwidget)
         self.tabWidget.setObjectName(u"tabWidget")
         self.tabWidget.setMinimumSize(QSize(400, 0))
@@ -132,7 +132,6 @@ class Ui_MainWindow(object):
         self.bxDelimiter.addItem("")
         self.bxDelimiter.addItem("")
         self.bxDelimiter.addItem("")
-        self.bxDelimiter.addItem("")
         self.bxDelimiter.setObjectName(u"bxDelimiter")
         self.bxDelimiter.setEditable(True)
 
@@ -220,6 +219,16 @@ class Ui_MainWindow(object):
 
         self.formLayout_3.setWidget(3, QFormLayout.FieldRole, self.bxPvalueCol)
 
+        self.lblLog10Pval = QLabel(self.groupBoxSelectCols)
+        self.lblLog10Pval.setObjectName(u"lblLog10Pval")
+
+        self.formLayout_3.setWidget(4, QFormLayout.LabelRole, self.lblLog10Pval)
+
+        self.chkBxLog10Pval = QCheckBox(self.groupBoxSelectCols)
+        self.chkBxLog10Pval.setObjectName(u"chkBxLog10Pval")
+
+        self.formLayout_3.setWidget(4, QFormLayout.FieldRole, self.chkBxLog10Pval)
+
 
         self.layoutTabProcess.addWidget(self.groupBoxSelectCols)
 
@@ -258,16 +267,19 @@ class Ui_MainWindow(object):
 
         self.groupBoxAnnFiles = QGroupBox(self.tabAnnotations)
         self.groupBoxAnnFiles.setObjectName(u"groupBoxAnnFiles")
+        sizePolicy = QSizePolicy(QSizePolicy.Preferred, QSizePolicy.Minimum)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(self.groupBoxAnnFiles.sizePolicy().hasHeightForWidth())
+        self.groupBoxAnnFiles.setSizePolicy(sizePolicy)
         self.groupBoxAnnFiles.setMaximumSize(QSize(16777215, 200))
-        self.formLayout_5 = QFormLayout(self.groupBoxAnnFiles)
-        self.formLayout_5.setObjectName(u"formLayout_5")
+        self.gridLayout_4 = QGridLayout(self.groupBoxAnnFiles)
+        self.gridLayout_4.setObjectName(u"gridLayout_4")
         self.labelDataFn_3 = QLabel(self.groupBoxAnnFiles)
         self.labelDataFn_3.setObjectName(u"labelDataFn_3")
 
-        self.formLayout_5.setWidget(0, QFormLayout.LabelRole, self.labelDataFn_3)
+        self.gridLayout_4.addWidget(self.labelDataFn_3, 0, 0, 1, 1)
 
-        self.verticalLayout_3 = QVBoxLayout()
-        self.verticalLayout_3.setObjectName(u"verticalLayout_3")
         self.lineAnnotationsFn = QLineEdit(self.groupBoxAnnFiles)
         self.lineAnnotationsFn.setObjectName(u"lineAnnotationsFn")
         self.lineAnnotationsFn.setEnabled(True)
@@ -275,33 +287,40 @@ class Ui_MainWindow(object):
         self.lineAnnotationsFn.setFrame(True)
         self.lineAnnotationsFn.setClearButtonEnabled(False)
 
-        self.verticalLayout_3.addWidget(self.lineAnnotationsFn)
+        self.gridLayout_4.addWidget(self.lineAnnotationsFn, 0, 1, 1, 3)
 
-        self.horizontalLayout_4 = QHBoxLayout()
-        self.horizontalLayout_4.setObjectName(u"horizontalLayout_4")
+        self.bxAnnotDelimiter = QComboBox(self.groupBoxAnnFiles)
+        self.bxAnnotDelimiter.addItem("")
+        self.bxAnnotDelimiter.addItem("")
+        self.bxAnnotDelimiter.addItem("")
+        self.bxAnnotDelimiter.addItem("")
+        self.bxAnnotDelimiter.setObjectName(u"bxAnnotDelimiter")
+        self.bxAnnotDelimiter.setStyleSheet(u"text-align: center;")
+        self.bxAnnotDelimiter.setEditable(True)
+        self.bxAnnotDelimiter.setFrame(False)
+
+        self.gridLayout_4.addWidget(self.bxAnnotDelimiter, 1, 1, 1, 2)
+
+        self.labelAnnotDelm = QLabel(self.groupBoxAnnFiles)
+        self.labelAnnotDelm.setObjectName(u"labelAnnotDelm")
+
+        self.gridLayout_4.addWidget(self.labelAnnotDelm, 1, 3, 1, 1)
+
         self.btnAnnotationsFn = QPushButton(self.groupBoxAnnFiles)
         self.btnAnnotationsFn.setObjectName(u"btnAnnotationsFn")
 
-        self.horizontalLayout_4.addWidget(self.btnAnnotationsFn)
+        self.gridLayout_4.addWidget(self.btnAnnotationsFn, 2, 1, 1, 1)
 
         self.btnLoadAnnotFile = QPushButton(self.groupBoxAnnFiles)
         self.btnLoadAnnotFile.setObjectName(u"btnLoadAnnotFile")
 
-        self.horizontalLayout_4.addWidget(self.btnLoadAnnotFile)
-
-
-        self.verticalLayout_3.addLayout(self.horizontalLayout_4)
-
-
-        self.formLayout_5.setLayout(0, QFormLayout.FieldRole, self.verticalLayout_3)
+        self.gridLayout_4.addWidget(self.btnLoadAnnotFile, 2, 2, 1, 2)
 
         self.lblKnownGeneFn = QLabel(self.groupBoxAnnFiles)
         self.lblKnownGeneFn.setObjectName(u"lblKnownGeneFn")
 
-        self.formLayout_5.setWidget(1, QFormLayout.LabelRole, self.lblKnownGeneFn)
+        self.gridLayout_4.addWidget(self.lblKnownGeneFn, 3, 0, 1, 1)
 
-        self.verticalLayout_4 = QVBoxLayout()
-        self.verticalLayout_4.setObjectName(u"verticalLayout_4")
         self.lineKnownGenesFn = QLineEdit(self.groupBoxAnnFiles)
         self.lineKnownGenesFn.setObjectName(u"lineKnownGenesFn")
         self.lineKnownGenesFn.setEnabled(True)
@@ -309,32 +328,24 @@ class Ui_MainWindow(object):
         self.lineKnownGenesFn.setFrame(True)
         self.lineKnownGenesFn.setClearButtonEnabled(False)
 
-        self.verticalLayout_4.addWidget(self.lineKnownGenesFn)
+        self.gridLayout_4.addWidget(self.lineKnownGenesFn, 3, 1, 1, 3)
 
-        self.horizontalLayout_5 = QHBoxLayout()
-        self.horizontalLayout_5.setObjectName(u"horizontalLayout_5")
         self.btnKnownGenesFn = QPushButton(self.groupBoxAnnFiles)
         self.btnKnownGenesFn.setObjectName(u"btnKnownGenesFn")
 
-        self.horizontalLayout_5.addWidget(self.btnKnownGenesFn)
+        self.gridLayout_4.addWidget(self.btnKnownGenesFn, 4, 1, 1, 1)
 
         self.btnLoadKnownGenesFile = QPushButton(self.groupBoxAnnFiles)
         self.btnLoadKnownGenesFile.setObjectName(u"btnLoadKnownGenesFile")
 
-        self.horizontalLayout_5.addWidget(self.btnLoadKnownGenesFile)
-
-
-        self.verticalLayout_4.addLayout(self.horizontalLayout_5)
-
-
-        self.formLayout_5.setLayout(1, QFormLayout.FieldRole, self.verticalLayout_4)
+        self.gridLayout_4.addWidget(self.btnLoadKnownGenesFile, 4, 2, 1, 2)
 
 
         self.layoutTabAnnotations.addWidget(self.groupBoxAnnFiles)
 
         self.groupBoxAnnCols = QGroupBox(self.tabAnnotations)
         self.groupBoxAnnCols.setObjectName(u"groupBoxAnnCols")
-        self.groupBoxAnnCols.setMaximumSize(QSize(16777215, 380))
+        self.groupBoxAnnCols.setMaximumSize(QSize(16777215, 320))
         self.formLayout_6 = QFormLayout(self.groupBoxAnnCols)
         self.formLayout_6.setObjectName(u"formLayout_6")
         self.lblChromAnn = QLabel(self.groupBoxAnnCols)
@@ -585,7 +596,7 @@ class Ui_MainWindow(object):
 
         self.tabWidget.addTab(self.tabPlot, "")
 
-        self.horizontalLayoutCentral.addWidget(self.tabWidget)
+        self.gridLayout_3.addWidget(self.tabWidget, 0, 0, 1, 1)
 
         self.framePlot = QFrame(self.centralwidget)
         self.framePlot.setObjectName(u"framePlot")
@@ -614,10 +625,10 @@ class Ui_MainWindow(object):
         self.horizontalLayoutFrame.addWidget(self.progressBarBlue)
 
 
-        self.horizontalLayoutCentral.addWidget(self.framePlot)
+        self.gridLayout_3.addWidget(self.framePlot, 0, 1, 1, 1)
 
 
-        self.verticalLayout.addLayout(self.horizontalLayoutCentral)
+        self.gridLayout_2.addLayout(self.gridLayout_3, 0, 0, 1, 1)
 
         MainWindow.setCentralWidget(self.centralwidget)
         self.menubar = QMenuBar(MainWindow)
@@ -681,6 +692,7 @@ class Ui_MainWindow(object):
 
         self.tabWidget.setCurrentIndex(0)
         self.bxDelimiter.setCurrentIndex(0)
+        self.bxAnnotDelimiter.setCurrentIndex(0)
         self.bxMergeGenes.setCurrentIndex(1)
         self.bxBoostKnown.setCurrentIndex(0)
 
@@ -715,10 +727,9 @@ class Ui_MainWindow(object):
 #endif // QT_CONFIG(tooltip)
         self.labelFileDelm.setText(QCoreApplication.translate("MainWindow", u"File delimiter", None))
         self.bxDelimiter.setItemText(0, QCoreApplication.translate("MainWindow", u"whitespace", None))
-        self.bxDelimiter.setItemText(1, QCoreApplication.translate("MainWindow", u",", None))
+        self.bxDelimiter.setItemText(1, QCoreApplication.translate("MainWindow", u", (comma)", None))
         self.bxDelimiter.setItemText(2, QCoreApplication.translate("MainWindow", u"tab", None))
-        self.bxDelimiter.setItemText(3, QCoreApplication.translate("MainWindow", u"|", None))
-        self.bxDelimiter.setItemText(4, QCoreApplication.translate("MainWindow", u"space", None))
+        self.bxDelimiter.setItemText(3, QCoreApplication.translate("MainWindow", u"| (pipe)", None))
 
 #if QT_CONFIG(tooltip)
         self.bxDelimiter.setToolTip(QCoreApplication.translate("MainWindow", u"Splits input file into columns", None))
@@ -755,6 +766,14 @@ class Ui_MainWindow(object):
 #if QT_CONFIG(tooltip)
         self.bxPvalueCol.setToolTip(QCoreApplication.translate("MainWindow", u"Column header in input file", None))
 #endif // QT_CONFIG(tooltip)
+#if QT_CONFIG(tooltip)
+        self.lblLog10Pval.setToolTip(QCoreApplication.translate("MainWindow", u"Add check if P-value column contains -log10 values", None))
+#endif // QT_CONFIG(tooltip)
+        self.lblLog10Pval.setText(QCoreApplication.translate("MainWindow", u"-log10 P-values?", None))
+#if QT_CONFIG(tooltip)
+        self.chkBxLog10Pval.setToolTip(QCoreApplication.translate("MainWindow", u"Add check if P-value column contains -log10 values", None))
+#endif // QT_CONFIG(tooltip)
+        self.chkBxLog10Pval.setText("")
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.tabProcess), QCoreApplication.translate("MainWindow", u"Process", None))
         self.btnPrev2.setText(QCoreApplication.translate("MainWindow", u"Previous", None))
         self.btnNext3.setText(QCoreApplication.translate("MainWindow", u"Next", None))
@@ -763,6 +782,18 @@ class Ui_MainWindow(object):
 #if QT_CONFIG(tooltip)
         self.lineAnnotationsFn.setToolTip(QCoreApplication.translate("MainWindow", u"Annotations file", None))
 #endif // QT_CONFIG(tooltip)
+        self.bxAnnotDelimiter.setItemText(0, QCoreApplication.translate("MainWindow", u", (comma)", None))
+        self.bxAnnotDelimiter.setItemText(1, QCoreApplication.translate("MainWindow", u"whitespace", None))
+        self.bxAnnotDelimiter.setItemText(2, QCoreApplication.translate("MainWindow", u"tab", None))
+        self.bxAnnotDelimiter.setItemText(3, QCoreApplication.translate("MainWindow", u"| (pipe)", None))
+
+#if QT_CONFIG(tooltip)
+        self.bxAnnotDelimiter.setToolTip(QCoreApplication.translate("MainWindow", u"Splits annotation file into columns", None))
+#endif // QT_CONFIG(tooltip)
+#if QT_CONFIG(tooltip)
+        self.labelAnnotDelm.setToolTip(QCoreApplication.translate("MainWindow", u"Delimiter separating columns in data file", None))
+#endif // QT_CONFIG(tooltip)
+        self.labelAnnotDelm.setText(QCoreApplication.translate("MainWindow", u"Delimiter", None))
 #if QT_CONFIG(tooltip)
         self.btnAnnotationsFn.setToolTip(QCoreApplication.translate("MainWindow", u"Select file", None))
 #endif // QT_CONFIG(tooltip)

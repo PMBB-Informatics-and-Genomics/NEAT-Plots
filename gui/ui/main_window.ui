@@ -20,10 +20,10 @@
    <string>NEAT</string>
   </property>
   <widget class="QWidget" name="centralwidget">
-   <layout class="QVBoxLayout" name="verticalLayout">
-    <item>
-     <layout class="QHBoxLayout" name="horizontalLayoutCentral">
-      <item>
+   <layout class="QGridLayout" name="gridLayout_2">
+    <item row="0" column="0">
+     <layout class="QGridLayout" name="gridLayout_3">
+      <item row="0" column="0">
        <widget class="QTabWidget" name="tabWidget">
         <property name="minimumSize">
          <size>
@@ -202,7 +202,7 @@
                </item>
                <item>
                 <property name="text">
-                 <string>,</string>
+                 <string>, (comma)</string>
                 </property>
                </item>
                <item>
@@ -212,12 +212,7 @@
                </item>
                <item>
                 <property name="text">
-                 <string>|</string>
-                </property>
-               </item>
-               <item>
-                <property name="text">
-                 <string>space</string>
+                 <string>| (pipe)</string>
                 </property>
                </item>
               </widget>
@@ -373,6 +368,26 @@
                </property>
               </widget>
              </item>
+             <item row="4" column="0">
+              <widget class="QLabel" name="lblLog10Pval">
+               <property name="toolTip">
+                <string>Add check if P-value column contains -log10 values</string>
+               </property>
+               <property name="text">
+                <string>-log10 P-values?</string>
+               </property>
+              </widget>
+             </item>
+             <item row="4" column="1">
+              <widget class="QCheckBox" name="chkBxLog10Pval">
+               <property name="toolTip">
+                <string>Add check if P-value column contains -log10 values</string>
+               </property>
+               <property name="text">
+                <string/>
+               </property>
+              </widget>
+             </item>
             </layout>
            </widget>
           </item>
@@ -440,6 +455,12 @@
           </item>
           <item>
            <widget class="QGroupBox" name="groupBoxAnnFiles">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Preferred" vsizetype="Minimum">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
             <property name="maximumSize">
              <size>
               <width>16777215</width>
@@ -449,7 +470,7 @@
             <property name="title">
              <string>Load Files</string>
             </property>
-            <layout class="QFormLayout" name="formLayout_5">
+            <layout class="QGridLayout" name="gridLayout_4">
              <item row="0" column="0">
               <widget class="QLabel" name="labelDataFn_3">
                <property name="text">
@@ -457,106 +478,139 @@
                </property>
               </widget>
              </item>
-             <item row="0" column="1">
-              <layout class="QVBoxLayout" name="verticalLayout_3">
-               <item>
-                <widget class="QLineEdit" name="lineAnnotationsFn">
-                 <property name="enabled">
-                  <bool>true</bool>
-                 </property>
-                 <property name="font">
-                  <font>
-                   <family>Arial</family>
-                   <bold>false</bold>
-                  </font>
-                 </property>
-                 <property name="toolTip">
-                  <string>Annotations file</string>
-                 </property>
-                 <property name="frame">
-                  <bool>true</bool>
-                 </property>
-                 <property name="clearButtonEnabled">
-                  <bool>false</bool>
-                 </property>
-                </widget>
-               </item>
-               <item>
-                <layout class="QHBoxLayout" name="horizontalLayout_4">
-                 <item>
-                  <widget class="QPushButton" name="btnAnnotationsFn">
-                   <property name="toolTip">
-                    <string>Select file</string>
-                   </property>
-                   <property name="text">
-                    <string>...</string>
-                   </property>
-                  </widget>
-                 </item>
-                 <item>
-                  <widget class="QPushButton" name="btnLoadAnnotFile">
-                   <property name="text">
-                    <string>Load</string>
-                   </property>
-                  </widget>
-                 </item>
-                </layout>
-               </item>
-              </layout>
+             <item row="0" column="1" colspan="3">
+              <widget class="QLineEdit" name="lineAnnotationsFn">
+               <property name="enabled">
+                <bool>true</bool>
+               </property>
+               <property name="font">
+                <font>
+                 <family>Arial</family>
+                 <bold>false</bold>
+                </font>
+               </property>
+               <property name="toolTip">
+                <string>Annotations file</string>
+               </property>
+               <property name="frame">
+                <bool>true</bool>
+               </property>
+               <property name="clearButtonEnabled">
+                <bool>false</bool>
+               </property>
+              </widget>
              </item>
-             <item row="1" column="0">
+             <item row="1" column="1" colspan="2">
+              <widget class="QComboBox" name="bxAnnotDelimiter">
+               <property name="toolTip">
+                <string>Splits annotation file into columns</string>
+               </property>
+               <property name="styleSheet">
+                <string notr="true">text-align: center;</string>
+               </property>
+               <property name="editable">
+                <bool>true</bool>
+               </property>
+               <property name="currentIndex">
+                <number>0</number>
+               </property>
+               <property name="frame">
+                <bool>false</bool>
+               </property>
+               <item>
+                <property name="text">
+                 <string>, (comma)</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>whitespace</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>tab</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>| (pipe)</string>
+                </property>
+               </item>
+              </widget>
+             </item>
+             <item row="1" column="3">
+              <widget class="QLabel" name="labelAnnotDelm">
+               <property name="toolTip">
+                <string>Delimiter separating columns in data file</string>
+               </property>
+               <property name="text">
+                <string>Delimiter</string>
+               </property>
+              </widget>
+             </item>
+             <item row="2" column="1">
+              <widget class="QPushButton" name="btnAnnotationsFn">
+               <property name="toolTip">
+                <string>Select file</string>
+               </property>
+               <property name="text">
+                <string>...</string>
+               </property>
+              </widget>
+             </item>
+             <item row="2" column="2" colspan="2">
+              <widget class="QPushButton" name="btnLoadAnnotFile">
+               <property name="text">
+                <string>Load</string>
+               </property>
+              </widget>
+             </item>
+             <item row="3" column="0">
               <widget class="QLabel" name="lblKnownGeneFn">
                <property name="text">
                 <string>Known genes</string>
                </property>
               </widget>
              </item>
-             <item row="1" column="1">
-              <layout class="QVBoxLayout" name="verticalLayout_4">
-               <item>
-                <widget class="QLineEdit" name="lineKnownGenesFn">
-                 <property name="enabled">
-                  <bool>true</bool>
-                 </property>
-                 <property name="font">
-                  <font>
-                   <family>Arial</family>
-                   <bold>false</bold>
-                  </font>
-                 </property>
-                 <property name="toolTip">
-                  <string>Gene information file</string>
-                 </property>
-                 <property name="frame">
-                  <bool>true</bool>
-                 </property>
-                 <property name="clearButtonEnabled">
-                  <bool>false</bool>
-                 </property>
-                </widget>
-               </item>
-               <item>
-                <layout class="QHBoxLayout" name="horizontalLayout_5">
-                 <item>
-                  <widget class="QPushButton" name="btnKnownGenesFn">
-                   <property name="toolTip">
-                    <string>Select file</string>
-                   </property>
-                   <property name="text">
-                    <string>...</string>
-                   </property>
-                  </widget>
-                 </item>
-                 <item>
-                  <widget class="QPushButton" name="btnLoadKnownGenesFile">
-                   <property name="text">
-                    <string>Load</string>
-                   </property>
-                  </widget>
-                 </item>
-                </layout>
-               </item>
-              </layout>
+             <item row="3" column="1" colspan="3">
+              <widget class="QLineEdit" name="lineKnownGenesFn">
+               <property name="enabled">
+                <bool>true</bool>
+               </property>
+               <property name="font">
+                <font>
+                 <family>Arial</family>
+                 <bold>false</bold>
+                </font>
+               </property>
+               <property name="toolTip">
+                <string>Gene information file</string>
+               </property>
+               <property name="frame">
+                <bool>true</bool>
+               </property>
+               <property name="clearButtonEnabled">
+                <bool>false</bool>
+               </property>
+              </widget>
+             </item>
+             <item row="4" column="1">
+              <widget class="QPushButton" name="btnKnownGenesFn">
+               <property name="toolTip">
+                <string>Select file</string>
+               </property>
+               <property name="text">
+                <string>...</string>
+               </property>
+              </widget>
+             </item>
+             <item row="4" column="2" colspan="2">
+              <widget class="QPushButton" name="btnLoadKnownGenesFile">
+               <property name="text">
+                <string>Load</string>
+               </property>
+              </widget>
              </item>
             </layout>
            </widget>
@@ -566,7 +620,7 @@
             <property name="maximumSize">
              <size>
               <width>16777215</width>
-              <height>380</height>
+              <height>320</height>
              </size>
             </property>
             <property name="title">
@@ -1025,7 +1079,7 @@
         </widget>
        </widget>
       </item>
-      <item>
+      <item row="0" column="1">
        <widget class="QFrame" name="framePlot">
         <property name="maximumSize">
          <size>
@@ -1044,29 +1098,23 @@
         <property name="frameShadow">
          <enum>QFrame::Raised</enum>
         </property>
-        <widget class="QProgressBar" name="progressBarBlue">
-         <property name="geometry">
-          <rect>
-           <x>196</x>
-           <y>364</y>
-           <width>300</width>
-           <height>80</height>
-          </rect>
-         </property>
-         <property name="minimumSize">
-          <size>
-           <width>300</width>
-           <height>80</height>
-          </size>
-         </property>
-         <property name="maximumSize">
-          <size>
-           <width>300</width>
-           <height>80</height>
-          </size>
-         </property>
-         <property name="styleSheet">
-          <string notr="true">#progressBarBlue {
+        <layout class="QHBoxLayout" name="horizontalLayoutFrame">
+         <item>
+          <widget class="QProgressBar" name="progressBarBlue">
+           <property name="minimumSize">
+            <size>
+             <width>300</width>
+             <height>80</height>
+            </size>
+           </property>
+           <property name="maximumSize">
+            <size>
+             <width>300</width>
+             <height>80</height>
+            </size>
+           </property>
+           <property name="styleSheet">
+            <string notr="true">#progressBarBlue {
     border: 2px solid #2196F3;
     border-radius: 5px;
     background-color: #E0E0E0;
@@ -1076,11 +1124,13 @@
     width: 10px; 
     margin: 0.5px;
 }</string>
-         </property>
-         <property name="value">
-          <number>1</number>
-         </property>
-        </widget>
+           </property>
+           <property name="value">
+            <number>1</number>
+           </property>
+          </widget>
+         </item>
+        </layout>
        </widget>
       </item>
      </layout>
