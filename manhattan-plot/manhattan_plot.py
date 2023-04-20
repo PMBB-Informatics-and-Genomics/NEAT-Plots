@@ -2,6 +2,7 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.patches import ConnectionPatch
+import matplotlib.patches as mpatches
 import matplotlib as mpl
 from scipy.stats import chi2
 import json
@@ -147,7 +148,7 @@ class ManhattanPlot:
             if self.test_rows is not None:
                 self.df = self.df.sort_values(by=['#CHROM']).iloc[:int(self.test_rows)]
         else:
-            self.df = pd.read_table(self.path, sep=delim, nrows=self.test_rows)
+            self.df = pd.read_table(self.path, sep=delim, nrows=self.test_rows, low_memory=False)
 
         self.df.index = np.arange(len(self.df))
         print('Loaded', len(self.df), 'Rows')
@@ -295,8 +296,8 @@ class ManhattanPlot:
         print('\n'.join(self.__fmt_print_rows(sortedDF.loc[sortedDF['P'] > self.sig, printCols])))
         print('')
 
-    def plot_data(self, with_table=True):
-        self.__config_axes(with_table=with_table)
+    def plot_data(self, with_table=True, side_legend=False):
+        self.__config_axes(with_table=with_table, side_legend=side_legend)
 
         if self.vertical:
             self.base_ax.set_yticks(self.chr_ticks[0])
@@ -343,13 +344,13 @@ class ManhattanPlot:
         else:
             self.__plot_color_signals(odds_df, evens_df)
 
-    def plot_sig_signals(self, rep_genes=[], rep_boost=False):
+    def plot_sig_signals(self, rep_genes=[], rep_boost=False, side_legend=False):
         odds_df, evens_df = self.__find_signals_sig(rep_genes, rep_boost)
 
         if self.signal_color_col is None:
             self.__plot_signals(odds_df, evens_df)
         else:
-            self.__plot_color_signals(odds_df, evens_df)
+            self.__plot_color_signals(odds_df, evens_df, side_legend=side_legend)
 
     def plot_annotations(self, plot_sig=True, rep_genes=[], rep_boost=False):
         halfLD = self.ld_block / 2
@@ -445,9 +446,9 @@ class ManhattanPlot:
         else:
             self.__plot_table_horizontal(rep_genes=rep_genes, with_table_bg=with_table_bg, with_table_grid=with_table_grid)
 
-    def full_plot(self, rep_genes=[], extra_cols={}, number_cols=[], rep_boost=False, save=None, with_table=True, save_res=150, with_title=True, keep_chr_pos=True, with_table_bg=True, with_table_grid=True):
-        self.plot_data(with_table=with_table)
-        self.plot_sig_signals(rep_genes=rep_genes, rep_boost=rep_boost)
+    def full_plot(self, rep_genes=[], extra_cols={}, number_cols=[], rep_boost=False, save=None, with_table=True, save_res=150, with_title=True, keep_chr_pos=True, with_table_bg=True, with_table_grid=True, side_legend=False):
+        self.plot_data(with_table=with_table, side_legend=side_legend)
+        self.plot_sig_signals(rep_genes=rep_genes, rep_boost=rep_boost, side_legend=side_legend)
         if with_table:
             if self.phewas_annotate_col is None:
                 self.plot_annotations(rep_genes=rep_genes, rep_boost=rep_boost)
@@ -732,7 +733,7 @@ class ManhattanPlot:
 
         return odds_df, evens_df
 
-    def __config_axes(self, with_table=True):
+    def __config_axes(self, with_table=True, side_legend=False):
         need_cbar = (self.signal_color_col is not None) or (self.twas_color_col is not None)
 
         if self.log_p_axis_midpoint is None:
@@ -761,7 +762,7 @@ class ManhattanPlot:
                     self.table_ax = axes[1]
                     self.base_ax = axes[0]
 
-            elif not self.vertical and need_cbar and with_table:
+            elif not self.vertical and need_cbar and with_table and not side_legend:
                 # Horizontal, color bar, table
                 ratios = [0.08, 0.45, 1] if not self.invert else [1, 0.45, 0.08]
                 self.fig, axes = plt.subplots(nrows=3, ncols=1,
@@ -775,6 +776,29 @@ class ManhattanPlot:
                 else:
                     self.cbar_ax = axes[2]
                     self.base_ax = axes[0]
+
+            elif not self.vertical and need_cbar and with_table and side_legend:
+                # Horizontal, side legend instead of color bar, table
+
+                print('Horizontal, table, side legend')
+
+                ratios = [0.4, 1] if not self.invert else [1, 0.4]
+                self.fig = plt.figure()
+
+                gs0 = self.fig.add_gridspec(1, 2, width_ratios=[1, 0.2])
+
+                gs1 = gs0[0].subgridspec(2, 1, height_ratios=ratios)
+
+                if not self.invert:
+                    self.table_ax = self.fig.add_subplot(gs1[0])
+                    self.base_ax = self.fig.add_subplot(gs1[1])
+                else:
+                    self.table_ax = self.fig.add_subplot(gs1[1])
+                    self.base_ax = self.fig.add_subplot(gs1[0])
+
+                self.cbar_ax = self.fig.add_subplot(gs0[1])
+
+                self.fig.set_size_inches(14.4, 6)
 
             elif not self.vertical and need_cbar and not with_table:
                 # Horizontal, color bar, no table
@@ -979,6 +1003,9 @@ class ManhattanPlot:
         print('Due to signal merging and replication prioritization, the following genes were renamed:')
         print('\n'.join([k + ': ' + v for k, v in self.signal_rep_map.items()]))
 
+        if len(odds_df) == 0 and len(evens_df) == 0:
+            raise ValueError("No signals to annotate. Try making P-value thresholds less stringent")
+
         return odds_df, evens_df
 
     def __find_signals_specific(self, signal_bed_df):
@@ -1074,18 +1101,19 @@ class ManhattanPlot:
 
         return new_data
 
-    def __plot_color_signals(self, odds_df, evens_df):
+    def __plot_color_signals(self, odds_df, evens_df, side_legend=False):
         if self.phewas_rep_color_col is not None:
             # Filter points that get signal colors by Known == True
-            odds_df = odds_df[~odds_df[self.phewas_rep_color_col]]
-            evens_df = evens_df[~evens_df[self.phewas_rep_color_col]]
+            odds_df = odds_df[~odds_df[self.phewas_rep_color_col]].copy()
+            evens_df = evens_df[~evens_df[self.phewas_rep_color_col]].copy()
             # self.base_ax.set_yticks(np.arange(0, 350, 20))
             self.fig.set_size_inches(14.4, 8)
 
         unique_vals = list(odds_df[self.signal_color_col].dropna().unique())
         unique_vals.extend(list(evens_df[self.signal_color_col].dropna().unique()))
         unique_vals = list(set(unique_vals))
-        discrete = len(unique_vals) <= 30
+
+        discrete = ~pd.api.types.is_numeric_dtype(odds_df[self.signal_color_col])
 
         if not discrete:
             color_min = min(odds_df[self.signal_color_col].quantile(0.05),
@@ -1123,7 +1151,6 @@ class ManhattanPlot:
                                             cmap=plt.cm.get_cmap(self.COLOR_MAP, len(categories)), s=evens_df['pt_sz'])
 
             elif self.phewas_updown_col is not None:
-
                 if self.phewas_size_col is None:
                     odds_df['pt_sz'] = 60
                     evens_df['pt_sz'] = 60
@@ -1176,7 +1203,6 @@ class ManhattanPlot:
                         color_map = plt.cm.get_cmap(self.COLOR_MAP, len(categories))
                         edge_color_list = subDF['Cat_Num'].apply(lambda x: color_map(x))
                         face_color_list = subDF[['Cat_Num', self.phewas_fill_col]].apply(lambda x: color_map(x['Cat_Num']) if x[self.phewas_fill_col] else 'none', axis=1)
-                        print(face_color_list.value_counts())
                         self.base_ax.scatter(subDF[self.plot_x_col], subDF[self.plot_y_col],
                                              s=subDF['pt_sz'], marker=shape,
                                              edgecolors=edge_color_list.values, linewidth=1,
@@ -1194,22 +1220,36 @@ class ManhattanPlot:
                                                            ncolors=len(unique_vals))
                         scat = plt.cm.ScalarMappable(norm=new_norm, cmap=plt.cm.get_cmap(self.COLOR_MAP, len(unique_vals)))
 
-            self.__add_color_bar(scat, categories)
+            self.__add_color_bar(scat, categories, side_legend=side_legend)
 
-    def __add_color_bar(self, mappable, categories):
-        cbar = self.fig.colorbar(mappable, cax=self.cbar_ax, orientation='horizontal')
-        xmin, xmax = self.cbar_ax.get_xlim()
-        factor = (xmax - xmin) / len(categories)
+    def __add_color_bar(self, mappable, categories, side_legend=False):
+        if not side_legend:
+            cbar = self.fig.colorbar(mappable, cax=self.cbar_ax, orientation='horizontal')
+            xmin, xmax = self.cbar_ax.get_xlim()
+            factor = (xmax - xmin) / len(categories)
 
-        categories = [c if len(c) < 20 else c[:17] + '...' for c in categories]
+            categories = [c if len(c) < 20 else c[:17] + '...' for c in categories]
 
-        cbar.set_ticks((np.arange(len(categories)) + 0.5) * factor + xmin)
-        if not self.invert:
-            cbar.ax.set_xticklabels(categories, rotation=30, ha='left')
-            self.cbar_ax.xaxis.tick_top()
+            cbar.set_ticks((np.arange(len(categories)) + 0.5) * factor + xmin)
+            if not self.invert:
+                cbar.ax.set_xticklabels(categories, rotation=30, ha='left')
+                self.cbar_ax.xaxis.tick_top()
+            else:
+                cbar.ax.set_xticklabels(categories, rotation=30, ha='right')
+            self.fig.tight_layout()
         else:
-            cbar.ax.set_xticklabels(categories, rotation=30, ha='right')
-        self.fig.tight_layout()
+            handles = []
+            mappable_cmap = mappable.get_cmap()
+            for i in range(len(categories)):
+                handles.append(mpatches.Patch(color=mappable_cmap(i), label=categories[i]))
+
+            ncols = len(categories) // 14
+
+            self.cbar_ax.legend(handles=handles, loc='lower left', ncol=ncols)
+            self.cbar_ax.xaxis.set_visible(False)
+            self.cbar_ax.yaxis.set_visible(False)
+            self.cbar_ax.spines[['right', 'top', 'left', 'bottom']].set_visible(False)
+            self.fig.tight_layout()
 
     def __plot_table_vertical(self, extra_cols={}, number_cols=[], rep_genes=[], keep_chr_pos=True):
         if len(self.annot_list) == 0:
@@ -1312,9 +1352,13 @@ class ManhattanPlot:
             elif not with_table_grid:
                 cell.set_linewidth(0)
                 cell.PAD = 0
-                cell.get_text().set_rotation(45)
-                cell.get_text().set_verticalalignment('bottom')
+                # cell.get_text().set_rotation(45)
+                # cell.get_text().set_verticalalignment('bottom')
                 cell.get_text().set_horizontalalignment('left')
+                cell.get_text().set_verticalalignment('center')
+                cell.get_text().set_visible(False)
+                cell.get_text().set_rotation(90)
+                cell.set_height(1)
             cell.get_text().set_fontsize(cell.get_text().get_fontsize() + 5)
 
         for i in range(num_cols):
@@ -1334,6 +1378,12 @@ class ManhattanPlot:
                                  xyB=(connect_x, connect_y),
                                  axesB=self.table_ax, coordsB='axes fraction',
                                  arrowstyle='-', color='silver')
+
+            if not with_table_grid:
+                self.table_ax.text(connect_x, connect_y + 0.05, cell_text,
+                                   horizontalalignment='left',
+                                   verticalalignment='bottom',
+                                   rotation=45, transform=self.table_ax.transAxes)
 
             if self.twas_updown_col is not None:
                 shape = 'v' if connection_row[self.twas_updown_col] < 0 else '^'
