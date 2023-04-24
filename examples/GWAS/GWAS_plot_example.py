@@ -23,18 +23,13 @@ if __name__ == "__main__":
                                   ld_block=4E5, merge_genes=True,
                                   invert=False)
 
-    mp.full_plot(rep_genes=known_genes,
-                 extra_cols={'RSID': 'RSID', 'A1': 'Allele'},
-                 rep_boost=True,
-                 keep_chr_pos=False,
-                 save_res=150, save='PMBB_TSH_Meta-Analysis_GWAS_plot_vertical.png')
+    mp.full_plot(rep_genes=known_genes, extra_cols={'RSID': 'RSID', 'A1': 'Allele'}, rep_boost=True,
+                 save='PMBB_TSH_Meta-Analysis_GWAS_plot_vertical.png', save_res=150, keep_chr_pos=False)
 
     # Horizontal Without Table
     mp.update_plotting_parameters(sug=1E-5, annot_thresh=1E-5, sig=5E-8,
                                   ld_block=4E5, merge_genes=True,
                                   invert=False, vertical=False)
 
-    mp.full_plot(rep_genes=known_genes,
-                 rep_boost=True,
-                 with_table=False,
-                 save_res=150, save='PMBB_TSH_Meta-Analysis_GWAS_plot_horizontal.png')
+    mp.full_plot(rep_genes=known_genes, rep_boost=True, save='PMBB_TSH_Meta-Analysis_GWAS_plot_horizontal.png',
+                 with_table=False, save_res=150)

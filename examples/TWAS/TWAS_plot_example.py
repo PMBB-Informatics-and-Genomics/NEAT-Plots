@@ -21,7 +21,5 @@ if __name__ == "__main__":
                                   twas_color_col='tissue', twas_updown_col='zscore',
                                   vertical=False)
 
-    mp.full_plot(rep_genes=known_genes,
-                 rep_boost=True,
-                 keep_chr_pos=False,
-                 save_res=150, save='POAGG_MEGA_TWAS_plot.png')
+    mp.full_plot(rep_genes=known_genes, rep_boost=True, save='POAGG_MEGA_TWAS_plot.png', save_res=150,
+                 keep_chr_pos=False)

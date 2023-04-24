@@ -296,8 +296,8 @@ class ManhattanPlot:
         print('\n'.join(self.__fmt_print_rows(sortedDF.loc[sortedDF['P'] > self.sig, printCols])))
         print('')
 
-    def plot_data(self, with_table=True, side_legend=False):
-        self.__config_axes(with_table=with_table, side_legend=side_legend)
+    def plot_data(self, with_table=True, legend_loc=None):
+        self.__config_axes(with_table=with_table, legend_loc=legend_loc)
 
         if self.vertical:
             self.base_ax.set_yticks(self.chr_ticks[0])
@@ -344,13 +344,13 @@ class ManhattanPlot:
         else:
             self.__plot_color_signals(odds_df, evens_df)
 
-    def plot_sig_signals(self, rep_genes=[], rep_boost=False, side_legend=False):
+    def plot_sig_signals(self, rep_genes=[], rep_boost=False, legend_loc=None):
         odds_df, evens_df = self.__find_signals_sig(rep_genes, rep_boost)
 
         if self.signal_color_col is None:
             self.__plot_signals(odds_df, evens_df)
         else:
-            self.__plot_color_signals(odds_df, evens_df, side_legend=side_legend)
+            self.__plot_color_signals(odds_df, evens_df, legend_loc=legend_loc)
 
     def plot_annotations(self, plot_sig=True, rep_genes=[], rep_boost=False):
         halfLD = self.ld_block / 2
@@ -446,9 +446,11 @@ class ManhattanPlot:
         else:
             self.__plot_table_horizontal(rep_genes=rep_genes, with_table_bg=with_table_bg, with_table_grid=with_table_grid)
 
-    def full_plot(self, rep_genes=[], extra_cols={}, number_cols=[], rep_boost=False, save=None, with_table=True, save_res=150, with_title=True, keep_chr_pos=True, with_table_bg=True, with_table_grid=True, side_legend=False):
-        self.plot_data(with_table=with_table, side_legend=side_legend)
-        self.plot_sig_signals(rep_genes=rep_genes, rep_boost=rep_boost, side_legend=side_legend)
+    def full_plot(self, rep_genes=[], extra_cols={}, number_cols=[], rep_boost=False, save=None, with_table=True,
+                  save_res=150, with_title=True, keep_chr_pos=True, with_table_bg=True, with_table_grid=True,
+                  legend_loc=None):
+        self.plot_data(with_table=with_table, legend_loc=legend_loc)
+        self.plot_sig_signals(rep_genes=rep_genes, rep_boost=rep_boost, legend_loc=legend_loc)
         if with_table:
             if self.phewas_annotate_col is None:
                 self.plot_annotations(rep_genes=rep_genes, rep_boost=rep_boost)
@@ -733,7 +735,7 @@ class ManhattanPlot:
 
         return odds_df, evens_df
 
-    def __config_axes(self, with_table=True, side_legend=False):
+    def __config_axes(self, with_table=True, legend_loc=None):
         need_cbar = (self.signal_color_col is not None) or (self.twas_color_col is not None)
 
         if self.log_p_axis_midpoint is None:
@@ -762,7 +764,7 @@ class ManhattanPlot:
                     self.table_ax = axes[1]
                     self.base_ax = axes[0]
 
-            elif not self.vertical and need_cbar and with_table and not side_legend:
+            elif not self.vertical and need_cbar and with_table and legend_loc is None:
                 # Horizontal, color bar, table
                 ratios = [0.08, 0.45, 1] if not self.invert else [1, 0.45, 0.08]
                 self.fig, axes = plt.subplots(nrows=3, ncols=1,
@@ -777,7 +779,23 @@ class ManhattanPlot:
                     self.cbar_ax = axes[2]
                     self.base_ax = axes[0]
 
-            elif not self.vertical and need_cbar and with_table and side_legend:
+            elif not self.vertical and need_cbar and with_table and legend_loc == 'top':
+                # Horizontal, table, top legend instead of color bar
+
+                ratios = [0.15, 0.45, 1] if not self.invert else [1, 0.45, 0.15]
+                self.fig, axes = plt.subplots(nrows=3, ncols=1,
+                                              gridspec_kw={'height_ratios': ratios})
+                self.fig.set_size_inches(14.4, 6)
+                self.table_ax = axes[1]
+
+                if not self.invert:
+                    self.cbar_ax = axes[0]
+                    self.base_ax = axes[2]
+                else:
+                    self.cbar_ax = axes[2]
+                    self.base_ax = axes[0]
+
+            elif not self.vertical and need_cbar and with_table and legend_loc == 'side':
                 # Horizontal, side legend instead of color bar, table
 
                 print('Horizontal, table, side legend')
@@ -1101,7 +1119,7 @@ class ManhattanPlot:
 
         return new_data
 
-    def __plot_color_signals(self, odds_df, evens_df, side_legend=False):
+    def __plot_color_signals(self, odds_df, evens_df, legend_loc=None):
         if self.phewas_rep_color_col is not None:
             # Filter points that get signal colors by Known == True
             odds_df = odds_df[~odds_df[self.phewas_rep_color_col]].copy()
@@ -1220,10 +1238,10 @@ class ManhattanPlot:
                                                            ncolors=len(unique_vals))
                         scat = plt.cm.ScalarMappable(norm=new_norm, cmap=plt.cm.get_cmap(self.COLOR_MAP, len(unique_vals)))
 
-            self.__add_color_bar(scat, categories, side_legend=side_legend)
+            self.__add_color_bar(scat, categories, legend_loc=legend_loc)
 
-    def __add_color_bar(self, mappable, categories, side_legend=False):
-        if not side_legend:
+    def __add_color_bar(self, mappable, categories, legend_loc=None):
+        if legend_loc is None:
             cbar = self.fig.colorbar(mappable, cax=self.cbar_ax, orientation='horizontal')
             xmin, xmax = self.cbar_ax.get_xlim()
             factor = (xmax - xmin) / len(categories)
@@ -1243,9 +1261,13 @@ class ManhattanPlot:
             for i in range(len(categories)):
                 handles.append(mpatches.Patch(color=mappable_cmap(i), label=categories[i]))
 
-            ncols = len(categories) // 14
+            if legend_loc == 'side':
+                nrows = 14
+                self.cbar_ax.legend(handles=handles, loc='lower left', nrow=nrows)
+            elif legend_loc == 'top':
+                ncols = 6
+                self.cbar_ax.legend(handles=handles, loc='lower center', ncol=ncols)
 
-            self.cbar_ax.legend(handles=handles, loc='lower left', ncol=ncols)
             self.cbar_ax.xaxis.set_visible(False)
             self.cbar_ax.yaxis.set_visible(False)
             self.cbar_ax.spines[['right', 'top', 'left', 'bottom']].set_visible(False)
