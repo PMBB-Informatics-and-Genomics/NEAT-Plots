@@ -82,7 +82,6 @@ class ManhattanPlot:
     COLOR_MAP = 'turbo_r'
     # COLOR_MAP = 'Paired'
 
-
     CHR_POS_ROUND = 5E4
     MIN_PT_SZ = 5
     MAX_PT_SZ = 200
@@ -419,36 +418,15 @@ class ManhattanPlot:
                 alreadyPlottedGenes.append(signalID)
                 self.annot_list.append(row)
 
-    def __plot_pointers_only(self):
-
-        signalDF = self.thinned[self.thinned[self.phewas_annotate_col]]
-
-        for _, row in signalDF.iterrows():
-            if self.vertical:
-                if self.max_log_p is not None:
-                    pointer_x = signalDF[signalDF[self.plot_x_col] <= self.max_log_p][self.plot_x_col].max()
-                else:
-                    pointer_x = signalDF[self.plot_x_col].max()
-                self.base_ax.plot([pointer_x, self.max_x],
-                                  [row[self.plot_y_col], row[self.plot_y_col]],
-                                  c='silver', linewidth=1.5, alpha=1)
-            else:
-                pointer_y = row[self.plot_y_col]
-                self.base_ax.plot([row[self.plot_x_col], row[self.plot_x_col]],
-                                  [pointer_y, self.max_y],
-                                  c='silver', linewidth=1.5, alpha=1)
-
-        self.annot_list.append(row)
-
-    def plot_table(self, extra_cols={}, number_cols=[], rep_genes=[], keep_chr_pos=True, with_table_bg=True, with_table_grid=True):
+    def plot_table(self, extra_cols={}, number_cols=[], rep_genes=[], keep_chr_pos=True, with_table_bg=True, with_table_grid=True, text_rep_colors=False):
         if self.vertical:
             self.__plot_table_vertical(extra_cols=extra_cols, number_cols=number_cols, rep_genes=rep_genes, keep_chr_pos=keep_chr_pos)
         else:
-            self.__plot_table_horizontal(rep_genes=rep_genes, with_table_bg=with_table_bg, with_table_grid=with_table_grid)
+            self.__plot_table_horizontal(rep_genes=rep_genes, with_table_bg=with_table_bg, with_table_grid=with_table_grid, text_rep_colors=text_rep_colors)
 
     def full_plot(self, rep_genes=[], extra_cols={}, number_cols=[], rep_boost=False, save=None, with_table=True,
                   save_res=150, with_title=True, keep_chr_pos=True, with_table_bg=True, with_table_grid=True,
-                  legend_loc=None):
+                  legend_loc=None, text_rep_colors=False):
         self.plot_data(with_table=with_table, legend_loc=legend_loc)
         self.plot_sig_signals(rep_genes=rep_genes, rep_boost=rep_boost, legend_loc=legend_loc)
         if with_table:
@@ -456,7 +434,7 @@ class ManhattanPlot:
                 self.plot_annotations(rep_genes=rep_genes, rep_boost=rep_boost)
             else:
                 self.__plot_pointers_only()
-            self.plot_table(extra_cols=extra_cols, number_cols=number_cols, rep_genes=rep_genes, keep_chr_pos=keep_chr_pos, with_table_bg=with_table_bg, with_table_grid=with_table_grid)
+            self.plot_table(extra_cols=extra_cols, number_cols=number_cols, rep_genes=rep_genes, keep_chr_pos=keep_chr_pos, with_table_bg=with_table_bg, with_table_grid=with_table_grid, text_rep_colors=text_rep_colors)
         if with_title:
             plt.suptitle(self.title)
             plt.tight_layout()
@@ -1240,6 +1218,27 @@ class ManhattanPlot:
 
             self.__add_color_bar(scat, categories, legend_loc=legend_loc)
 
+    def __plot_pointers_only(self):
+
+        signalDF = self.thinned[self.thinned[self.phewas_annotate_col]]
+
+        for _, row in signalDF.iterrows():
+            if self.vertical:
+                if self.max_log_p is not None:
+                    pointer_x = signalDF[signalDF[self.plot_x_col] <= self.max_log_p][self.plot_x_col].max()
+                else:
+                    pointer_x = signalDF[self.plot_x_col].max()
+                self.base_ax.plot([pointer_x, self.max_x],
+                                  [row[self.plot_y_col], row[self.plot_y_col]],
+                                  c='silver', linewidth=1.5, alpha=1)
+            else:
+                pointer_y = row[self.plot_y_col]
+                self.base_ax.plot([row[self.plot_x_col], row[self.plot_x_col]],
+                                  [pointer_y, self.max_y],
+                                  c='silver', linewidth=1.5, alpha=1)
+
+        self.annot_list.append(row)
+
     def __add_color_bar(self, mappable, categories, legend_loc=None):
         if legend_loc is None:
             cbar = self.fig.colorbar(mappable, cax=self.cbar_ax, orientation='horizontal')
@@ -1328,7 +1327,7 @@ class ManhattanPlot:
                                  arrowstyle='-', color='silver')
             self.fig.add_artist(cp)
 
-    def __plot_table_horizontal(self, rep_genes=[], with_table_bg=True, with_table_grid=True):
+    def __plot_table_horizontal(self, rep_genes=[], with_table_bg=True, with_table_grid=True, text_rep_colors=False):
         if len(self.annot_list) == 0 and self.phewas_annotate_col is None:
             raise ValueError("No signals to annotate. Try making P-value thresholds less stringent")
 
@@ -1387,10 +1386,15 @@ class ManhattanPlot:
             connection_row = annotTable.iloc[i]
             cell_text = table[(0, i)].get_text().get_text()
 
-            if cell_text in rep_genes and with_table_bg:
+            if (cell_text in rep_genes) or (self.phewas_rep_color_col is not None and connection_row[self.phewas_rep_color_col]) and with_table_bg:
                 table[(0, i)].set_facecolor(self.REP_TABLE_COLOR)
             elif with_table_bg:
                 table[(0, i)].set_facecolor(self.NOVEL_TABLE_COLOR)
+
+            if (cell_text in rep_genes) or (self.phewas_rep_color_col is not None and connection_row[self.phewas_rep_color_col]) and text_rep_colors:
+                table[(0, i)].get_text().set_color(self.DARK_CHR_COLOR)
+            elif text_rep_colors:
+                table[(0, i)].get_text().set_color(self.NOVEL_TABLE_COLOR)
 
             connect_y = 0 if not self.invert else cell_height
             connect_y = 0.05 if not with_table_grid else connect_y
@@ -1402,10 +1406,20 @@ class ManhattanPlot:
                                  arrowstyle='-', color='silver')
 
             if not with_table_grid:
+                if (cell_text in rep_genes) or (self.phewas_rep_color_col is not None and connection_row[self.phewas_rep_color_col]) and text_rep_colors:
+                    # row_text_color = self.DARK_CHR_COLOR
+                    row_text_color = 'k'
+                elif text_rep_colors:
+                    row_text_color = self.NOVEL_HIT_COLOR
+                    # row_text_color = 'k'
+                else:
+                    row_text_color = 'k'
+
                 self.table_ax.text(connect_x, connect_y + 0.05, cell_text,
                                    horizontalalignment='left',
                                    verticalalignment='bottom',
-                                   rotation=45, transform=self.table_ax.transAxes)
+                                   rotation=45, transform=self.table_ax.transAxes,
+                                   color=row_text_color)
 
             if self.twas_updown_col is not None:
                 shape = 'v' if connection_row[self.twas_updown_col] < 0 else '^'

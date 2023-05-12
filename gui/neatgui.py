@@ -499,8 +499,9 @@ class Window(QMainWindow, Ui_MainWindow):
         
         try:
             if self.chkBoxSignalsOnly.checkState() == Qt.Unchecked:
-                self.mp.full_plot(extra_cols=extra_cols, number_cols=number_cols, rep_genes=rep_genes, keep_chr_pos=keep_chr_pos,
-                  with_table=include_table, rep_boost=rep_boost, with_title=include_title)
+                self.mp.full_plot(rep_genes=rep_genes, extra_cols=extra_cols, number_cols=number_cols,
+                                  rep_boost=rep_boost, with_table=include_table, with_title=include_title,
+                                  keep_chr_pos=keep_chr_pos)
             else:
                 self.mp.signal_plot(extra_cols=extra_cols, number_cols=number_cols, rep_genes=rep_genes, keep_chr_pos=keep_chr_pos,
                   with_table=include_table, rep_boost=rep_boost, with_title=include_title)
