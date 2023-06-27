@@ -550,13 +550,17 @@ class ManhattanPlot:
         # plt.clf()
 
     def qq_plot(self, save=None, save_res=150, with_title=True, steps=30):
-        chi2_med = chi2.ppf((1 - self.df['P']).median(), df=1)
+        use_p = self.df['P'].dropna().copy()
+        M = len(use_p)
+        print(len(self.df) - M, 'SNPs Dropped for Missing P')
+
+        chi2_med = chi2.ppf((1 - use_p).median(), df=1)
         lambda_gc = chi2_med / chi2.ppf(0.5, 1)
         print('Lambda GC:', lambda_gc)
 
-        max_log = -np.log10(1 / len(self.df))
-        fraction_seq = (np.arange(len(self.df)) + 1) / len(self.df)
-        p_vec = self.df['P'].sort_values()
+        max_log = -np.log10(1 / M)
+        fraction_seq = (np.arange(M) + 1) / M
+        p_vec = use_p.sort_values()
 
         plot_df = p_vec.to_frame()
         plot_df['Exp P'] = fraction_seq
@@ -1262,10 +1266,10 @@ class ManhattanPlot:
 
             if legend_loc == 'side':
                 nrows = 14
-                self.cbar_ax.legend(handles=handles, loc='lower left', nrow=nrows)
+                self.cbar_ax.legend(handles=handles, loc='lower left', ncols=max(len(categories) // nrows, 1))
             elif legend_loc == 'top':
                 ncols = 6
-                self.cbar_ax.legend(handles=handles, loc='lower center', ncol=ncols)
+                self.cbar_ax.legend(handles=handles, loc='lower center', ncols=ncols)
 
             self.cbar_ax.xaxis.set_visible(False)
             self.cbar_ax.yaxis.set_visible(False)
@@ -1293,6 +1297,7 @@ class ManhattanPlot:
         annot_table[number_cols] = annot_table[number_cols].applymap(lambda x: '{:.3}'.format(x))
 
         location = 'center left' if not self.invert else 'center right'
+
         table = mpl.table.table(ax=self.table_ax,
                                 cellText=annot_table[columns].fillna('').values,
                                 colLabels=columns, loc=location,
@@ -1372,32 +1377,26 @@ class ManhattanPlot:
                 cell.set_height(1)
             elif not with_table_grid:
                 cell.set_linewidth(0)
-                cell.PAD = 0
-                # cell.get_text().set_rotation(45)
-                # cell.get_text().set_verticalalignment('bottom')
-                cell.get_text().set_horizontalalignment('left')
-                cell.get_text().set_verticalalignment('center')
                 cell.get_text().set_visible(False)
-                cell.get_text().set_rotation(90)
                 cell.set_height(1)
+
             cell.get_text().set_fontsize(cell.get_text().get_fontsize() + 5)
 
         for i in range(num_cols):
             connection_row = annotTable.iloc[i]
             cell_text = table[(0, i)].get_text().get_text()
 
-            if (cell_text in rep_genes) or (self.phewas_rep_color_col is not None and connection_row[self.phewas_rep_color_col]) and with_table_bg:
+            if ((cell_text in rep_genes) or (self.phewas_rep_color_col is not None and connection_row[self.phewas_rep_color_col])) and with_table_bg:
                 table[(0, i)].set_facecolor(self.REP_TABLE_COLOR)
             elif with_table_bg:
                 table[(0, i)].set_facecolor(self.NOVEL_TABLE_COLOR)
 
-            if (cell_text in rep_genes) or (self.phewas_rep_color_col is not None and connection_row[self.phewas_rep_color_col]) and text_rep_colors:
+            if ((cell_text in rep_genes) or (self.phewas_rep_color_col is not None and connection_row[self.phewas_rep_color_col])) and text_rep_colors:
                 table[(0, i)].get_text().set_color(self.DARK_CHR_COLOR)
             elif text_rep_colors:
                 table[(0, i)].get_text().set_color(self.NOVEL_TABLE_COLOR)
 
-            connect_y = 0 if not self.invert else cell_height
-            connect_y = 0.05 if not with_table_grid else connect_y
+            connect_y = 0 if not self.invert else 1
             connect_x = table[(0, i)].get_x() + (0.5*cell_width) if with_table_grid else table[(0, i)].get_x()
             cp = ConnectionPatch(xyA=(connection_row[self.plot_x_col], self.max_y),
                                  axesA=self.base_ax, coordsA='data',
@@ -1408,18 +1407,25 @@ class ManhattanPlot:
             if not with_table_grid:
                 if (cell_text in rep_genes) or (self.phewas_rep_color_col is not None and connection_row[self.phewas_rep_color_col]) and text_rep_colors:
                     # row_text_color = self.DARK_CHR_COLOR
-                    row_text_color = 'k'
+                    # row_text_color = 'k'
+                    row_text_color = 'dimgrey'
                 elif text_rep_colors:
                     row_text_color = self.NOVEL_HIT_COLOR
-                    # row_text_color = 'k'
                 else:
                     row_text_color = 'k'
 
-                self.table_ax.text(connect_x, connect_y + 0.05, cell_text,
-                                   horizontalalignment='left',
-                                   verticalalignment='bottom',
-                                   rotation=45, transform=self.table_ax.transAxes,
-                                   color=row_text_color)
+                if not self.invert:
+                    self.table_ax.text(connect_x - 0.005, connect_y, cell_text,
+                                       horizontalalignment='left',
+                                       verticalalignment='bottom',
+                                       rotation=45, transform=self.table_ax.transAxes,
+                                       color=row_text_color)
+                else:
+                    self.table_ax.text(connect_x + 0.005, connect_y, cell_text,
+                                       horizontalalignment='right',
+                                       verticalalignment='top',
+                                       rotation=45, transform=self.table_ax.transAxes,
+                                       color=row_text_color)
 
             if self.twas_updown_col is not None:
                 shape = 'v' if connection_row[self.twas_updown_col] < 0 else '^'
