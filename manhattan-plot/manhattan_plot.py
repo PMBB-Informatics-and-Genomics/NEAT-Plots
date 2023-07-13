@@ -181,7 +181,7 @@ class ManhattanPlot:
         self.df['#CHROM'] = self.df['#CHROM'].replace('X', 23)
         self.df['#CHROM'] = self.df['#CHROM'].astype(int)
 
-        self.df['POS'] = self.df['POS'].astype(int)
+        self.df['POS'] = self.df['POS'].astype(float).astype(int)
         self.df = self.df.sort_values(by=['#CHROM', 'POS'])
         self.df['ID'] = self.df['ID'].fillna('')
 
@@ -681,7 +681,7 @@ class ManhattanPlot:
 
     def __get_absolute_positions(self, active_df):
         lastPos = self.df[~self.df['#CHROM'].duplicated(keep='last')].copy()
-        lastPos['POS'] = lastPos['POS'].astype(np.int64)
+        lastPos['POS'] = lastPos['POS'].astype(float).astype(np.int64)
         lastPos = lastPos.set_index('#CHROM').sort_index()['POS']
         lastPos.update(CHR_LENGTHS)
 
@@ -716,7 +716,6 @@ class ManhattanPlot:
         evens_df = self.thinned[self.thinned['#CHROM'].isin(evens)].copy()
 
         return odds_df, evens_df
-
     def __config_axes(self, with_table=True, legend_loc=None):
         need_cbar = (self.signal_color_col is not None) or (self.twas_color_col is not None)
 
