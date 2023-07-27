@@ -410,7 +410,7 @@ class BoroughsPlot:
             self.plot_table(extra_cols=extra_cols, number_cols=number_cols, rep_genes=rep_genes, keep_chr_pos=keep_chr_pos, with_table_bg=with_table_bg, with_table_grid=with_table_grid, text_rep_colors=text_rep_colors)
         if with_title:
             plt.suptitle(self.title)
-            plt.tight_layout()
+            # self.fig.tight_layout()
         if save is not None:
             plt.savefig(save, dpi=save_res)
         # plt.show()
@@ -483,7 +483,7 @@ class BoroughsPlot:
 
         if with_title:
             plt.suptitle('Signals Only:\n' + self.title)
-            plt.tight_layout()
+            # self.fig.tight_layout()
         if save is not None:
             plt.savefig(save, dpi=save_res)
         # plt.show()
@@ -523,7 +523,7 @@ class BoroughsPlot:
 
         plt.xlim(0, np.ceil(max_log))
         plt.ylim(0, np.ceil(max(plot_df['Log P'])))
-        plt.tight_layout()
+        # self.fig.tight_layout()
 
         if save is not None:
             plt.savefig(save, dpi=save_res)
@@ -547,7 +547,7 @@ class BoroughsPlot:
 
         if with_title:
             plt.suptitle(self.title)
-            plt.tight_layout()
+            # self.fig.tight_layout()
         if save is not None:
             plt.savefig(save, dpi=save_res)
         # plt.show()
@@ -706,14 +706,14 @@ class BoroughsPlot:
             self.fig, axes = plt.subplots(nrows=3 * facet_count, ncols=1,
                                           gridspec_kw={'height_ratios': ratios})
             self.fig.set_size_inches(14.4, 5*facet_count)
-            self.table_ax = axes[[1, 4, 7]]
+            self.table_ax = axes[1::3]
 
             if not self.invert:
-                self.cbar_ax = axes[[0, 3, 6]]
-                self.base_ax = axes[[2, 5, 8]]
+                self.cbar_ax = axes[0::3]
+                self.base_ax = axes[2::3]
             else:
-                self.cbar_ax = axes[[2, 5, 8]]
-                self.base_ax = axes[[0, 3, 6]]
+                self.cbar_ax = axes[2::3]
+                self.base_ax = axes[0::3]
 
         elif need_cbar and with_table and legend_loc == 'side':
             return
@@ -1053,7 +1053,7 @@ class BoroughsPlot:
                     cb.xaxis.tick_top()
                 else:
                     cbar.ax.set_xticklabels(categories, rotation=30, ha='right')
-                self.fig.tight_layout()
+                # self.fig.tight_layout()
             else:
                 handles = []
                 mappable_cmap = plt.cm.get_cmap(self.COLOR_MAP, len(categories))
@@ -1070,7 +1070,7 @@ class BoroughsPlot:
                 cb.xaxis.set_visible(False)
                 cb.yaxis.set_visible(False)
                 cb.spines[['right', 'top', 'left', 'bottom']].set_visible(False)
-                self.fig.tight_layout()
+                # self.fig.tight_layout()
 
     def __plot_table_horizontal(self, rep_genes=[], with_table_bg=True, with_table_grid=True, text_rep_colors=False):
         if len(self.annot_list) == 0:
@@ -1089,13 +1089,14 @@ class BoroughsPlot:
             num_cols = len(annotTable)
 
             table = ta.table(cellText=genes,
-                                        loc='lower center',
-                                        colWidths=[1 / (num_cols + 2) for g in genes[0]],
-                                        cellLoc='center')
+                             loc='lower center',
+                             colWidths=[1 / (num_cols + 2) for g in genes[0]],
+                             cellLoc='center')
             table.AXESPAD = 0
+            cell_width = 1 / (num_cols + 2)
+            cell_height = table[(0, 0)].get_height()
 
             ta.set_axis_off()
-            self.fig.tight_layout()
 
             if self.twas_color_col is not None:
                 unique_vals = sorted(annotTable[self.twas_color_col].unique())
@@ -1109,9 +1110,6 @@ class BoroughsPlot:
                 new_norm = mpl.colors.BoundaryNorm(boundaries=np.arange(len(unique_vals)+1), ncolors=len(unique_vals))
                 new_mappable = plt.cm.ScalarMappable(norm=new_norm, cmap=plt.cm.get_cmap(self.COLOR_MAP, len(unique_vals)))
                 self.__add_color_bar(new_mappable, color_map.keys())
-
-            cell_width = table[(0, 0)].get_width()
-            cell_height = table[(0, 0)].get_height()
 
             for index, cell in table.get_celld().items():
                 if with_table_grid:
@@ -1141,6 +1139,7 @@ class BoroughsPlot:
 
                 connect_y = 0 if not self.invert else 1
                 connect_x = table[(0, i)].get_x() + (0.5*cell_width) if with_table_grid else table[(0, i)].get_x()
+                connect_x = (cell_width * (i + 1)) - (cell_width * 0.5)
                 max_ax_y = self.base_ax[axi].get_ylim()[1]
 
                 cp = ConnectionPatch(xyA=(connection_row[self.plot_x_col], max_ax_y),
@@ -1184,3 +1183,8 @@ class BoroughsPlot:
                                          color=color, marker=shape, s=60)
 
                 self.fig.add_artist(cp)
+
+            print(ta.get_xlim(), ta.get_ylim())
+            ta.text(ta.get_xlim()[0], ta.get_ylim()[1], self.facets[axi], ha='left', va='top')
+
+        self.fig.tight_layout()

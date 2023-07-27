@@ -898,13 +898,16 @@ class ManhattanPlot:
             invisi_spine = 'right' if not self.invert else 'left'
             self.base_ax.spines[invisi_spine].set_visible(False)
 
+            print(self.thinned[self.plot_x_col].min())
+            print(self.plot_x_col)
+
             if not self.invert:
-                self.base_ax.set_xlim(left=0)
+                self.base_ax.set_xlim(left=self.thinned[self.plot_x_col].min())
                 if self.max_log_p is not None:
                     self.base_ax.set_xlim(right=self.max_log_p)
                 self.max_x = self.base_ax.get_xlim()[1]
             else:
-                self.base_ax.set_xlim(right=0)
+                self.base_ax.set_xlim(right=self.thinned[self.plot_x_col].min())
                 if self.max_log_p is not None:
                     self.base_ax.set_xlim(left=self.max_log_p)
                 self.max_x = self.base_ax.get_xlim()[0]
