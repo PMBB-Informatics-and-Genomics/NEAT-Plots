@@ -439,7 +439,7 @@ class ManhattanPlot:
             plt.suptitle(self.title)
             plt.tight_layout()
         if save is not None:
-            plt.savefig(save, dpi=save_res)
+            plt.savefig(save, dpi=save_res, bbox_inches='tight')
         # plt.show()
         # plt.clf()
 
@@ -524,7 +524,7 @@ class ManhattanPlot:
             plt.suptitle('Signals Only:\n' + self.title)
             plt.tight_layout()
         if save is not None:
-            plt.savefig(save, dpi=save_res)
+            plt.savefig(save, dpi=save_res, bbox_inches='tight')
         # plt.show()
 
     def full_plot_with_specific(self, signal_bed_df, plot_sig=True, rep_boost=False, rep_genes=[], extra_cols={}, number_cols=[], verbose=False, save=None, save_res=150):
@@ -545,7 +545,7 @@ class ManhattanPlot:
             print('Adding Table...', flush=True)
         self.plot_table(extra_cols=extra_cols, number_cols=number_cols, rep_genes=rep_genes)
         if save is not None:
-            plt.savefig(save, dpi=save_res)
+            plt.savefig(save, dpi=save_res, bbox_inches='tight')
         # plt.show()
         # plt.clf()
 
@@ -587,7 +587,7 @@ class ManhattanPlot:
         plt.tight_layout()
 
         if save is not None:
-            plt.savefig(save, dpi=save_res)
+            plt.savefig(save, dpi=save_res, bbox_inches='tight')
             plot_df.to_csv(save.replace('.png', '.csv'))
 
         # plt.show()
@@ -611,7 +611,7 @@ class ManhattanPlot:
             plt.suptitle(self.title)
             plt.tight_layout()
         if save is not None:
-            plt.savefig(save, dpi=save_res)
+            plt.savefig(save, dpi=save_res, bbox_inches='tight')
         # plt.show()
         # plt.clf()
 
