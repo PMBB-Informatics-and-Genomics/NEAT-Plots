@@ -101,6 +101,7 @@ class BoroughsPlot:
         self.path = file_path
         self.title = title
         self.test_rows = test_rows
+        mpl.rcParams.update({'font.size': 14})
 
     def config_colors(self, color_file_json):
         """
@@ -792,16 +793,16 @@ class BoroughsPlot:
             b.set_xlim(self.df[pos_col].min(), self.df[pos_col].max())
 
 
-            ax2 = b.twinx()
-            ax2.set_ylabel(self.facets[i])
-            ax2.tick_params(axis='y', right=False, left=False, labelright=False, labelleft=False)
+            # ax2 = b.twinx()
+            # ax2.set_ylabel(self.facets[i])
+            # ax2.tick_params(axis='y', right=False, left=False, labelright=False, labelleft=False)
 
             b.set_ylabel('- Log10 P')
             b.set_xlabel('Chromosomal Position')
             b.axhline(-np.log10(self.sig_line), c=self.FIFTH_COLOR)
             invisi_spine = 'top' if not self.invert else 'bottom'
             b.spines[invisi_spine].set_visible(False)
-            ax2.spines[invisi_spine].set_visible(False)
+            # ax2.spines[invisi_spine].set_visible(False)
 
             if not self.invert:
                 b.set_ylim(bottom=np.floor(-np.log10(self.df['P'].max())))
@@ -1055,6 +1056,7 @@ class BoroughsPlot:
                     cbar.ax.set_xticklabels(categories, rotation=30, ha='right')
                 # self.fig.tight_layout()
             else:
+                plt.rc('legend', fontsize=12)
                 handles = []
                 mappable_cmap = plt.cm.get_cmap(self.COLOR_MAP, len(categories))
                 for i in range(len(categories)):
@@ -1085,6 +1087,7 @@ class BoroughsPlot:
                 continue
 
             annotTable = annotTable.sort_values(by=['#CHROM', 'POS'])
+            annotTable.index = ['$\it{' + i + '}$' for i in annotTable.index]
             genes = [list(annotTable.index)]
             num_cols = len(annotTable)
 
@@ -1184,7 +1187,8 @@ class BoroughsPlot:
 
                 self.fig.add_artist(cp)
 
-            print(ta.get_xlim(), ta.get_ylim())
-            ta.text(ta.get_xlim()[0], ta.get_ylim()[1], self.facets[axi], ha='left', va='top')
+            cba = self.cbar_ax[axi]
+            # ta.text(ta.get_xlim()[0], ta.get_ylim()[1], self.facets[axi], ha='left', va='bottom')
+            cba.text(cba.get_xlim()[0], cba.get_ylim()[0] - 0.1, self.facets[axi], ha='left', va='top')
 
         self.fig.tight_layout()

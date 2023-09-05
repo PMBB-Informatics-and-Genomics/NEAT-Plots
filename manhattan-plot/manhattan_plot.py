@@ -102,6 +102,7 @@ class ManhattanPlot:
         self.path = file_path
         self.title = title
         self.test_rows = test_rows
+        mpl.rcParams.update({'font.size': 14})
 
     def config_colors(self, color_file_json):
         """
@@ -1296,6 +1297,7 @@ class ManhattanPlot:
                                                   'index': 'ID'})
         annot_table = annot_table.rename(columns=extra_cols)
         annot_table['P'] = annot_table['P'].apply(lambda x: '{:.3e}'.format(x))
+        annot_table['ID'] = annot_table['ID'].apply(lambda x: '$\it{' + x + '}$')
         annot_table[number_cols] = annot_table[number_cols].applymap(lambda x: '{:.3}'.format(x))
 
         location = 'center left' if not self.invert else 'center right'
@@ -1344,6 +1346,7 @@ class ManhattanPlot:
             annotTable = self.thinned[self.thinned[self.phewas_annotate_col]].set_index('ID')
 
         annotTable = annotTable.sort_values(by=['#CHROM', 'POS'])
+        annotTable.index = ['$\it{' + i + '}$' for i in annotTable.index]
         genes = [list(annotTable.index)]
         num_cols = len(annotTable)
 
