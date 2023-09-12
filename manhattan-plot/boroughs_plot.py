@@ -762,7 +762,7 @@ class BoroughsPlot:
             self.fig.set_size_inches(13, 3)
 
         else:
-            print('No support for your configuration...')
+            raise ValueError('No support for your configuration...')
 
         if self.invert:
             self.base_ax.invert_yaxis()
@@ -1087,7 +1087,7 @@ class BoroughsPlot:
                 continue
 
             annotTable = annotTable.sort_values(by=['#CHROM', 'POS'])
-            annotTable.index = ['$\it{' + i + '}$' for i in annotTable.index]
+            # annotTable.index = ['$\mathit{' + i + '}$' for i in annotTable.index]
             genes = [list(annotTable.index)]
             num_cols = len(annotTable)
 
@@ -1166,13 +1166,13 @@ class BoroughsPlot:
                                 horizontalalignment='left',
                                 verticalalignment='bottom',
                                 rotation=45, transform=ta.transAxes,
-                                color=row_text_color)
+                                color=row_text_color, style='italic')
                     else:
                         ta.text(connect_x + 0.005, connect_y, cell_text,
                                 horizontalalignment='right',
                                 verticalalignment='top',
                                 rotation=45, transform=ta.transAxes,
-                                color=row_text_color)
+                                color=row_text_color, style='italic')
 
                 if self.twas_updown_col is not None:
                     shape = 'v' if connection_row[self.twas_updown_col] < 0 else '^'

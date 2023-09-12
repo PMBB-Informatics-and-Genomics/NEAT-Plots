@@ -820,7 +820,7 @@ class ManhattanPlot:
                 self.fig.set_size_inches(13, 3)
 
             else:
-                print('No support for your configuration...')
+                raise ValueError('No support for your configuration...')
 
         elif self.log_p_axis_midpoint is not None:
 
