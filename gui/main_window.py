@@ -118,7 +118,7 @@ class Ui_MainWindow(object):
         self.spinTestRows.setObjectName(u"spinTestRows")
         self.spinTestRows.setMaximum(10000000)
         self.spinTestRows.setSingleStep(100)
-        self.spinTestRows.setValue(100000)
+        self.spinTestRows.setValue(0)
 
         self.formLayout_4.setWidget(1, QFormLayout.FieldRole, self.spinTestRows)
 
