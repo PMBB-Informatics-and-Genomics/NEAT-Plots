@@ -388,6 +388,8 @@ class Window(QMainWindow, Ui_MainWindow):
         # if it is the first time through this
         # or the annotation changed then we add annotation and thin data again
         if self.firstTimeStep3 or self.annotChangeMade:
+            # remove any rows where ID is blank in the annotation dataframe
+            self.annotDF.drop(self.annotDF[self.annotDF['ID'].isnull()].index, inplace=True)
             self.mp.df = self.dataCopy.df.copy()
             self.thread = QThread()
             self.worker = FileWorker()
