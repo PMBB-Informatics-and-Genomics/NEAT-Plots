@@ -1,5 +1,7 @@
-LPC Deployment:
-/project/ritchie_scratch/lindsay/NEAT-Plots/examples/
+LPC Deployments:
+/project/ritchie/tools/NEAT-Plots/examples/
+/project/ssverma_shared/tools/NEAT-Plots/examples/
+/project/verma_shared/tools/NEAT-Plots/examples/
 
 How to Set Up A Python Environment on LPC to Run Examples:
 mamba create -n manhattan-plot-dev
