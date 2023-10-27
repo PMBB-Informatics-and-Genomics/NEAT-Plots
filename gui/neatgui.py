@@ -509,7 +509,7 @@ class Window(QMainWindow, Ui_MainWindow):
                   with_table=include_table, rep_boost=rep_boost, with_title=include_title)
             self.updateProgress(75)
             
-            self.mp.fig.dpi=70
+            self.mp.fig.dpi = int(70 * self.spinScaling.value() / 100)
             self.canvasPlot = PlotCanvas(self,self.mp.fig)
             self.horizontalLayoutFrame.insertWidget(1,self.canvasPlot)
             self.canvasPlot.plot()
