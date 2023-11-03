@@ -890,8 +890,11 @@
                  </item>
                  <item row="1" column="1">
                   <widget class="QComboBox" name="bxMergeGenes">
+                   <property name="currentText">
+                    <string>True</string>
+                   </property>
                    <property name="currentIndex">
-                    <number>1</number>
+                    <number>0</number>
                    </property>
                    <item>
                     <property name="text">

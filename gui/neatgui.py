@@ -136,15 +136,14 @@ class Window(QMainWindow, Ui_MainWindow):
         if len(cols) != 4:   
             QMessageBox.warning(self,"Error", "<p>Please set column names in data input file</p>")
         elif self.dataFileLoadingRequired == True:
-            self.loadDataFile()
-            
-        if self.errorMessage != "":
-            QMessageBox.warning(self,"Error", f"<p>{self.errorMessage}</p>")
-            self.errorMessage=""
-        else:
-            self.tabWidget.setCurrentIndex(2)
-            self.setActiveTab(2)
-            self.dataFileLoadingRequired = False
+            self.loadDataFile()            
+            if self.errorMessage != "":
+                QMessageBox.warning(self,"Error", f"<p>{self.errorMessage}</p>")
+                self.errorMessage=""
+            else:
+                self.tabWidget.setCurrentIndex(2)
+                self.setActiveTab(2)
+                self.dataFileLoadingRequired = False
         
     
     def moveTab4(self):
@@ -188,9 +187,10 @@ class Window(QMainWindow, Ui_MainWindow):
         for idx in range(self.listOtherAnn.count()):
             if self.listOtherAnn.item(idx).text() in selected:
                 self.listOtherAnn.item(idx).setHidden(True)
+                self.listOtherAnn.item(idx).setSelected(False)
             else:
                 self.listOtherAnn.item(idx).setHidden(False)
-                self.listOtherAnn.item(idx).setSelected(False)
+#                 self.listOtherAnn.item(idx).setSelected(False)
 
 
     # add collapsible sections
@@ -360,6 +360,9 @@ class Window(QMainWindow, Ui_MainWindow):
         self.bxIDAnn.addItems(cols)
         self.listOtherAnn.clear()
         self.listOtherAnn.addItems(cols)
+        for i in range(self.listOtherAnn.count()):
+            self.listOtherAnn.item(i).setSelected(True)
+        
         
     def addAnnotation(self):
         addCols = []
@@ -490,8 +493,8 @@ class Window(QMainWindow, Ui_MainWindow):
         rep_genes=self.known_genes
         
         extra_cols=self.selectedExtraCols()
-        addCols = [item.text() for item in self.listOtherAnn.selectedItems()]
-        [extra_cols.update({x:x}) for x in addCols]
+#         addCols = [item.text() for item in self.listOtherAnn.selectedItems()]
+#         [extra_cols.update({x:x}) for x in addCols]
         
         number_cols = [item.text() for item in self.listNumericCols.selectedItems()]
         if self.chkBoxKeepGenomic.checkState() == Qt.Checked:
@@ -526,11 +529,16 @@ class Window(QMainWindow, Ui_MainWindow):
     
     def getExtraCols(self):
         columns = set(list(self.mp.df.columns))
-        if not self.annotDF.empty:
-            columns.update(list(self.annotDF.columns))
+#         if not self.annotDF.empty:
+#             columns.update(list(self.annotDF.columns))
         
         columns.discard('#CHROM')
-        columns.discard('POS')
+#         columns.discard('POS')
+        
+        columns.discard('ID')
+        columns.discard('ID_y')
+        columns.discard('ABS_POS')
+        columns.discard('P')
         
         # get all selected columns
         # remove those from the columns set
@@ -545,7 +553,7 @@ class Window(QMainWindow, Ui_MainWindow):
         #selectedCols.add(self.bxIDAnn.currentText())
         #retcols = list(columns - selectedCols)
         retcols = list(columns)
-        retcols.insert(0,self.bxPosCol.currentText())
+#         retcols.insert(0,self.bxPosCol.currentText())
         retcols.insert(0,self.bxChromCol.currentText())
         return retcols
         

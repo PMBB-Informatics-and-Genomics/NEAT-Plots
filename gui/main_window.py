@@ -711,7 +711,7 @@ class Ui_MainWindow(object):
         self.tabWidget.setCurrentIndex(3)
         self.bxDelimiter.setCurrentIndex(0)
         self.bxAnnotDelimiter.setCurrentIndex(0)
-        self.bxMergeGenes.setCurrentIndex(1)
+        self.bxMergeGenes.setCurrentIndex(0)
         self.bxBoostKnown.setCurrentIndex(0)
 
 
@@ -885,6 +885,7 @@ class Ui_MainWindow(object):
         self.bxMergeGenes.setItemText(0, QCoreApplication.translate("MainWindow", u"True", None))
         self.bxMergeGenes.setItemText(1, QCoreApplication.translate("MainWindow", u"False", None))
 
+        self.bxMergeGenes.setCurrentText(QCoreApplication.translate("MainWindow", u"True", None))
 #if QT_CONFIG(tooltip)
         self.lblBoostKnown.setToolTip("")
 #endif // QT_CONFIG(tooltip)
