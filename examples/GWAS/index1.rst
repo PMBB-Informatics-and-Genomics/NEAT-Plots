@@ -16,7 +16,6 @@ Import the pandas, os, manhattan_plot, ManhattanPlot from manhattan_plot, and ma
 
 
 For example:
-
 .. doctest::
 	import pandas as pd
 	import os
@@ -24,17 +23,17 @@ For example:
 	from manhattan_plot import ManhattanPlot
 	import matplotlib.pyplot as plt
 
-Read your file using "annotDF" (pandas) and rename your columns in the DataFrame by using "annotDF.rename". In the following example the column 'Gene' was renamed to 'ID'.
 
+Read your file using "annotDF" (pandas) and rename your columns in the DataFrame by using "annotDF.rename". In the following example the column 'Gene' was renamed to 'ID'.
 .. doctest::
 	annotDF = pd.read_csv('yourfile.csv')
 	annotDF = annotDF.rename(columns={'Gene': 'ID'})
 	print annotDF
 
+
 Identify known genes (or what you are searching for) and then create a list of them. By doing so, you can highlight these genes/objects in your plots,
 
 For example:
-
 .. doctest::
 	known_genes = ['enter', 'known', 'genes']
 	print known_genes
@@ -44,7 +43,6 @@ Load data from your specified file. Then clean the data by mapping the column na
 
 
 For example:
-
 .. doctest::
 mp = ManhattanPlot(file_path='Data/filename.tsv',
 					   title='Your Title',/
@@ -57,6 +55,7 @@ mp = ManhattanPlot(file_path='Data/filename.tsv',
 						   'hm_variant_id': 'ID'})
 	mp.add_annotations(annotDF, extra_cols=['RSID'])
 	mp.get_thinned_data()
+
 
 **Your data is now ready for plot generation.**
 
