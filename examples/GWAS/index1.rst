@@ -9,8 +9,7 @@ Welcome to NEAT-Plots's documentation!
 .. toctree::
    :maxdepth: 2
    :caption: Contents:
-   
----------------------------------
+
 To create a Manhattan Plot:
 
 """Import the pandas, os, manhattan_plot, ManhattanPlot from manhattan_plot, and matplotlib.pyplot."""
@@ -93,7 +92,6 @@ For example:
 	plt.show()
 """
 
-------------------------------------------------------------------------------------------------------------------------------------------------
 
 """ NEAT-Plots can also generate other plots, such as QQ Plots and Signal Plots. Reference the following examples to do so."""
 
