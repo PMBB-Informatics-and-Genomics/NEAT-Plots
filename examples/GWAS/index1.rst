@@ -9,14 +9,7 @@ Welcome to NEAT-Plots's documentation!
 .. toctree::
    :maxdepth: 2
    :caption: Contents:
-
-Indices and tables
-==================
-
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
-
+   
 ---------------------------------
 To create a Manhattan Plot:
 
@@ -122,3 +115,11 @@ plt.show()
 mp.qq_plot()
 plt.show()
 """
+
+Indices and tables
+==================
+
+* :ref:`genindex`
+* :ref:`modindex`
+* :ref:`search`
+
