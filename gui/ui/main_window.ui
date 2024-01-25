@@ -49,7 +49,7 @@
          <enum>QTabWidget::Rounded</enum>
         </property>
         <property name="currentIndex">
-         <number>0</number>
+         <number>3</number>
         </property>
         <widget class="QWidget" name="tabLoad">
          <attribute name="title">
@@ -160,6 +160,12 @@
              </item>
              <item row="1" column="1">
               <widget class="QSpinBox" name="spinTestRows">
+               <property name="maximumSize">
+                <size>
+                 <width>90</width>
+                 <height>16777215</height>
+                </size>
+               </property>
                <property name="toolTip">
                 <string>Limit input </string>
                </property>
@@ -170,7 +176,7 @@
                 <number>100</number>
                </property>
                <property name="value">
-                <number>100000</number>
+                <number>0</number>
                </property>
               </widget>
              </item>
@@ -884,8 +890,11 @@
                  </item>
                  <item row="1" column="1">
                   <widget class="QComboBox" name="bxMergeGenes">
+                   <property name="currentText">
+                    <string>True</string>
+                   </property>
                    <property name="currentIndex">
-                    <number>1</number>
+                    <number>0</number>
                    </property>
                    <item>
                     <property name="text">
@@ -934,10 +943,23 @@
               </item>
               <item>
                <widget class="QGroupBox" name="groupBoxPlotOptions">
+                <property name="toolTip">
+                 <string>If plot exceeds window reduce value to better fit plot</string>
+                </property>
                 <property name="title">
                  <string>Plot Options</string>
                 </property>
                 <layout class="QGridLayout" name="gridLayout">
+                 <item row="0" column="1">
+                  <widget class="QCheckBox" name="chkBoxSignalsOnly">
+                   <property name="layoutDirection">
+                    <enum>Qt::RightToLeft</enum>
+                   </property>
+                   <property name="text">
+                    <string>Signals Only</string>
+                   </property>
+                  </widget>
+                 </item>
                  <item row="3" column="1" colspan="2">
                   <widget class="QLineEdit" name="lineDataTitle">
                    <property name="enabled">
@@ -957,52 +979,6 @@
                    </property>
                    <property name="clearButtonEnabled">
                     <bool>false</bool>
-                   </property>
-                  </widget>
-                 </item>
-                 <item row="0" column="2">
-                  <widget class="QCheckBox" name="chkBoxWithTitle">
-                   <property name="layoutDirection">
-                    <enum>Qt::RightToLeft</enum>
-                   </property>
-                   <property name="text">
-                    <string>With Title</string>
-                   </property>
-                  </widget>
-                 </item>
-                 <item row="3" column="0">
-                  <widget class="QLabel" name="labelTitle">
-                   <property name="layoutDirection">
-                    <enum>Qt::LeftToRight</enum>
-                   </property>
-                   <property name="text">
-                    <string>Title</string>
-                   </property>
-                   <property name="alignment">
-                    <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-                   </property>
-                  </widget>
-                 </item>
-                 <item row="0" column="1">
-                  <widget class="QCheckBox" name="chkBoxSignalsOnly">
-                   <property name="layoutDirection">
-                    <enum>Qt::RightToLeft</enum>
-                   </property>
-                   <property name="text">
-                    <string>Signals Only</string>
-                   </property>
-                  </widget>
-                 </item>
-                 <item row="0" column="0">
-                  <widget class="QCheckBox" name="chkBoxWithTable">
-                   <property name="layoutDirection">
-                    <enum>Qt::RightToLeft</enum>
-                   </property>
-                   <property name="text">
-                    <string>With Table</string>
-                   </property>
-                   <property name="checked">
-                    <bool>true</bool>
                    </property>
                   </widget>
                  </item>
@@ -1029,6 +1005,80 @@
                    </property>
                    <property name="tristate">
                     <bool>false</bool>
+                   </property>
+                  </widget>
+                 </item>
+                 <item row="0" column="0">
+                  <widget class="QCheckBox" name="chkBoxWithTable">
+                   <property name="layoutDirection">
+                    <enum>Qt::RightToLeft</enum>
+                   </property>
+                   <property name="text">
+                    <string>With Table</string>
+                   </property>
+                   <property name="checked">
+                    <bool>true</bool>
+                   </property>
+                  </widget>
+                 </item>
+                 <item row="3" column="0">
+                  <widget class="QLabel" name="labelTitle">
+                   <property name="layoutDirection">
+                    <enum>Qt::LeftToRight</enum>
+                   </property>
+                   <property name="text">
+                    <string>Title</string>
+                   </property>
+                   <property name="alignment">
+                    <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+                   </property>
+                  </widget>
+                 </item>
+                 <item row="0" column="2">
+                  <widget class="QCheckBox" name="chkBoxWithTitle">
+                   <property name="layoutDirection">
+                    <enum>Qt::RightToLeft</enum>
+                   </property>
+                   <property name="text">
+                    <string>With Title</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item row="4" column="1">
+                  <widget class="QSpinBox" name="spinScaling">
+                   <property name="maximumSize">
+                    <size>
+                     <width>60</width>
+                     <height>16777215</height>
+                    </size>
+                   </property>
+                   <property name="buttonSymbols">
+                    <enum>QAbstractSpinBox::UpDownArrows</enum>
+                   </property>
+                   <property name="suffix">
+                    <string>%</string>
+                   </property>
+                   <property name="minimum">
+                    <number>5</number>
+                   </property>
+                   <property name="maximum">
+                    <number>200</number>
+                   </property>
+                   <property name="singleStep">
+                    <number>5</number>
+                   </property>
+                   <property name="value">
+                    <number>100</number>
+                   </property>
+                  </widget>
+                 </item>
+                 <item row="4" column="0">
+                  <widget class="QLabel" name="labelScale">
+                   <property name="text">
+                    <string>Plot scaling</string>
+                   </property>
+                   <property name="alignment">
+                    <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
                    </property>
                   </widget>
                  </item>

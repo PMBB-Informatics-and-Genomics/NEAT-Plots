@@ -16,13 +16,13 @@ from PySide6.QtGui import (QAction, QBrush, QColor, QConicalGradient,
     QIcon, QImage, QKeySequence, QLinearGradient,
     QPainter, QPalette, QPixmap, QRadialGradient,
     QTransform)
-from PySide6.QtWidgets import (QAbstractItemView, QApplication, QCheckBox, QComboBox,
-    QFormLayout, QFrame, QGridLayout, QGroupBox,
-    QHBoxLayout, QLabel, QLineEdit, QListWidget,
-    QListWidgetItem, QMainWindow, QMenu, QMenuBar,
-    QProgressBar, QPushButton, QScrollArea, QSizePolicy,
-    QSpinBox, QStatusBar, QTabWidget, QVBoxLayout,
-    QWidget)
+from PySide6.QtWidgets import (QAbstractItemView, QAbstractSpinBox, QApplication, QCheckBox,
+    QComboBox, QFormLayout, QFrame, QGridLayout,
+    QGroupBox, QHBoxLayout, QLabel, QLineEdit,
+    QListWidget, QListWidgetItem, QMainWindow, QMenu,
+    QMenuBar, QProgressBar, QPushButton, QScrollArea,
+    QSizePolicy, QSpinBox, QStatusBar, QTabWidget,
+    QVBoxLayout, QWidget)
 
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
@@ -116,9 +116,10 @@ class Ui_MainWindow(object):
 
         self.spinTestRows = QSpinBox(self.groupBoxLoadData)
         self.spinTestRows.setObjectName(u"spinTestRows")
+        self.spinTestRows.setMaximumSize(QSize(90, 16777215))
         self.spinTestRows.setMaximum(10000000)
         self.spinTestRows.setSingleStep(100)
-        self.spinTestRows.setValue(100000)
+        self.spinTestRows.setValue(0)
 
         self.formLayout_4.setWidget(1, QFormLayout.FieldRole, self.spinTestRows)
 
@@ -519,6 +520,12 @@ class Ui_MainWindow(object):
         self.groupBoxPlotOptions.setObjectName(u"groupBoxPlotOptions")
         self.gridLayout = QGridLayout(self.groupBoxPlotOptions)
         self.gridLayout.setObjectName(u"gridLayout")
+        self.chkBoxSignalsOnly = QCheckBox(self.groupBoxPlotOptions)
+        self.chkBoxSignalsOnly.setObjectName(u"chkBoxSignalsOnly")
+        self.chkBoxSignalsOnly.setLayoutDirection(Qt.RightToLeft)
+
+        self.gridLayout.addWidget(self.chkBoxSignalsOnly, 0, 1, 1, 1)
+
         self.lineDataTitle = QLineEdit(self.groupBoxPlotOptions)
         self.lineDataTitle.setObjectName(u"lineDataTitle")
         self.lineDataTitle.setEnabled(True)
@@ -527,32 +534,6 @@ class Ui_MainWindow(object):
         self.lineDataTitle.setClearButtonEnabled(False)
 
         self.gridLayout.addWidget(self.lineDataTitle, 3, 1, 1, 2)
-
-        self.chkBoxWithTitle = QCheckBox(self.groupBoxPlotOptions)
-        self.chkBoxWithTitle.setObjectName(u"chkBoxWithTitle")
-        self.chkBoxWithTitle.setLayoutDirection(Qt.RightToLeft)
-
-        self.gridLayout.addWidget(self.chkBoxWithTitle, 0, 2, 1, 1)
-
-        self.labelTitle = QLabel(self.groupBoxPlotOptions)
-        self.labelTitle.setObjectName(u"labelTitle")
-        self.labelTitle.setLayoutDirection(Qt.LeftToRight)
-        self.labelTitle.setAlignment(Qt.AlignRight|Qt.AlignTrailing|Qt.AlignVCenter)
-
-        self.gridLayout.addWidget(self.labelTitle, 3, 0, 1, 1)
-
-        self.chkBoxSignalsOnly = QCheckBox(self.groupBoxPlotOptions)
-        self.chkBoxSignalsOnly.setObjectName(u"chkBoxSignalsOnly")
-        self.chkBoxSignalsOnly.setLayoutDirection(Qt.RightToLeft)
-
-        self.gridLayout.addWidget(self.chkBoxSignalsOnly, 0, 1, 1, 1)
-
-        self.chkBoxWithTable = QCheckBox(self.groupBoxPlotOptions)
-        self.chkBoxWithTable.setObjectName(u"chkBoxWithTable")
-        self.chkBoxWithTable.setLayoutDirection(Qt.RightToLeft)
-        self.chkBoxWithTable.setChecked(True)
-
-        self.gridLayout.addWidget(self.chkBoxWithTable, 0, 0, 1, 1)
 
         self.chkBoxInvert = QCheckBox(self.groupBoxPlotOptions)
         self.chkBoxInvert.setObjectName(u"chkBoxInvert")
@@ -567,6 +548,43 @@ class Ui_MainWindow(object):
         self.chkBoxVertical.setTristate(False)
 
         self.gridLayout.addWidget(self.chkBoxVertical, 1, 1, 1, 1)
+
+        self.chkBoxWithTable = QCheckBox(self.groupBoxPlotOptions)
+        self.chkBoxWithTable.setObjectName(u"chkBoxWithTable")
+        self.chkBoxWithTable.setLayoutDirection(Qt.RightToLeft)
+        self.chkBoxWithTable.setChecked(True)
+
+        self.gridLayout.addWidget(self.chkBoxWithTable, 0, 0, 1, 1)
+
+        self.labelTitle = QLabel(self.groupBoxPlotOptions)
+        self.labelTitle.setObjectName(u"labelTitle")
+        self.labelTitle.setLayoutDirection(Qt.LeftToRight)
+        self.labelTitle.setAlignment(Qt.AlignRight|Qt.AlignTrailing|Qt.AlignVCenter)
+
+        self.gridLayout.addWidget(self.labelTitle, 3, 0, 1, 1)
+
+        self.chkBoxWithTitle = QCheckBox(self.groupBoxPlotOptions)
+        self.chkBoxWithTitle.setObjectName(u"chkBoxWithTitle")
+        self.chkBoxWithTitle.setLayoutDirection(Qt.RightToLeft)
+
+        self.gridLayout.addWidget(self.chkBoxWithTitle, 0, 2, 1, 1)
+
+        self.spinScaling = QSpinBox(self.groupBoxPlotOptions)
+        self.spinScaling.setObjectName(u"spinScaling")
+        self.spinScaling.setMaximumSize(QSize(60, 16777215))
+        self.spinScaling.setButtonSymbols(QAbstractSpinBox.UpDownArrows)
+        self.spinScaling.setMinimum(5)
+        self.spinScaling.setMaximum(200)
+        self.spinScaling.setSingleStep(5)
+        self.spinScaling.setValue(100)
+
+        self.gridLayout.addWidget(self.spinScaling, 4, 1, 1, 1)
+
+        self.labelScale = QLabel(self.groupBoxPlotOptions)
+        self.labelScale.setObjectName(u"labelScale")
+        self.labelScale.setAlignment(Qt.AlignRight|Qt.AlignTrailing|Qt.AlignVCenter)
+
+        self.gridLayout.addWidget(self.labelScale, 4, 0, 1, 1)
 
 
         self.verticalLayoutScrollAreaPlot.addWidget(self.groupBoxPlotOptions)
@@ -690,10 +708,10 @@ class Ui_MainWindow(object):
 
         self.retranslateUi(MainWindow)
 
-        self.tabWidget.setCurrentIndex(0)
+        self.tabWidget.setCurrentIndex(3)
         self.bxDelimiter.setCurrentIndex(0)
         self.bxAnnotDelimiter.setCurrentIndex(0)
-        self.bxMergeGenes.setCurrentIndex(1)
+        self.bxMergeGenes.setCurrentIndex(0)
         self.bxBoostKnown.setCurrentIndex(0)
 
 
@@ -867,6 +885,7 @@ class Ui_MainWindow(object):
         self.bxMergeGenes.setItemText(0, QCoreApplication.translate("MainWindow", u"True", None))
         self.bxMergeGenes.setItemText(1, QCoreApplication.translate("MainWindow", u"False", None))
 
+        self.bxMergeGenes.setCurrentText(QCoreApplication.translate("MainWindow", u"True", None))
 #if QT_CONFIG(tooltip)
         self.lblBoostKnown.setToolTip("")
 #endif // QT_CONFIG(tooltip)
@@ -875,16 +894,21 @@ class Ui_MainWindow(object):
         self.bxBoostKnown.setItemText(1, QCoreApplication.translate("MainWindow", u"False", None))
 
         self.bxBoostKnown.setCurrentText(QCoreApplication.translate("MainWindow", u"True", None))
+#if QT_CONFIG(tooltip)
+        self.groupBoxPlotOptions.setToolTip(QCoreApplication.translate("MainWindow", u"If plot exceeds window reduce value to better fit plot", None))
+#endif // QT_CONFIG(tooltip)
         self.groupBoxPlotOptions.setTitle(QCoreApplication.translate("MainWindow", u"Plot Options", None))
+        self.chkBoxSignalsOnly.setText(QCoreApplication.translate("MainWindow", u"Signals Only", None))
 #if QT_CONFIG(tooltip)
         self.lineDataTitle.setToolTip(QCoreApplication.translate("MainWindow", u"Plot title", None))
 #endif // QT_CONFIG(tooltip)
-        self.chkBoxWithTitle.setText(QCoreApplication.translate("MainWindow", u"With Title", None))
-        self.labelTitle.setText(QCoreApplication.translate("MainWindow", u"Title", None))
-        self.chkBoxSignalsOnly.setText(QCoreApplication.translate("MainWindow", u"Signals Only", None))
-        self.chkBoxWithTable.setText(QCoreApplication.translate("MainWindow", u"With Table", None))
         self.chkBoxInvert.setText(QCoreApplication.translate("MainWindow", u"Invert", None))
         self.chkBoxVertical.setText(QCoreApplication.translate("MainWindow", u"Vertical", None))
+        self.chkBoxWithTable.setText(QCoreApplication.translate("MainWindow", u"With Table", None))
+        self.labelTitle.setText(QCoreApplication.translate("MainWindow", u"Title", None))
+        self.chkBoxWithTitle.setText(QCoreApplication.translate("MainWindow", u"With Title", None))
+        self.spinScaling.setSuffix(QCoreApplication.translate("MainWindow", u"%", None))
+        self.labelScale.setText(QCoreApplication.translate("MainWindow", u"Plot scaling", None))
         self.btnPlot.setText(QCoreApplication.translate("MainWindow", u"GENERATE PLOT", None))
         self.btnSave.setText(QCoreApplication.translate("MainWindow", u"SAVE PLOT", None))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.tabPlot), QCoreApplication.translate("MainWindow", u"Plot", None))
