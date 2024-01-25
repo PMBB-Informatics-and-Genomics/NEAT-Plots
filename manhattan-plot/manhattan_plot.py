@@ -89,6 +89,8 @@ class ManhattanPlot:
     MIN_TRI_SZ = 5
     MAX_TRI_SZ = 200
 
+    TOP_LEGEND_COLS = 6
+
     def __init__(self, file_path, test_rows=None, title='Manhattan Plot'):
         """
         Constructor for ManhattanPlot object
@@ -717,6 +719,7 @@ class ManhattanPlot:
         evens_df = self.thinned[self.thinned['#CHROM'].isin(evens)].copy()
 
         return odds_df, evens_df
+
     def __config_axes(self, with_table=True, legend_loc=None):
         need_cbar = (self.signal_color_col is not None) or (self.twas_color_col is not None)
 
@@ -763,10 +766,8 @@ class ManhattanPlot:
 
             elif not self.vertical and need_cbar and with_table and legend_loc == 'top':
                 # Horizontal, table, top legend instead of color bar
-
                 ratios = [0.15, 0.45, 1] if not self.invert else [1, 0.45, 0.15]
-                self.fig, axes = plt.subplots(nrows=3, ncols=1,
-                                              gridspec_kw={'height_ratios': ratios})
+                self.fig, axes = plt.subplots(nrows=3, ncols=1, gridspec_kw={'height_ratios': ratios})
                 self.fig.set_size_inches(14.4, 6)
                 self.table_ax = axes[1]
 
@@ -1262,6 +1263,7 @@ class ManhattanPlot:
                 cbar.ax.set_xticklabels(categories, rotation=30, ha='right')
             self.fig.tight_layout()
         else:
+            plt.rc('legend', fontsize=12)
             handles = []
             mappable_cmap = mappable.get_cmap()
             for i in range(len(categories)):
@@ -1271,7 +1273,7 @@ class ManhattanPlot:
                 nrows = 14
                 self.cbar_ax.legend(handles=handles, loc='lower left', ncols=max(len(categories) // nrows, 1))
             elif legend_loc == 'top':
-                ncols = 6
+                ncols = self.TOP_LEGEND_COLS
                 self.cbar_ax.legend(handles=handles, loc='lower center', ncols=ncols)
 
             self.cbar_ax.xaxis.set_visible(False)
@@ -1323,7 +1325,7 @@ class ManhattanPlot:
         for i in range(len(annot_table)):
             connection_row = annot_table.iloc[i]
             cell = table[(i+1, 0)]
-            cell_text = cell.get_text().get_text()
+            cell_text = cell.get_text().get_text().replace('$\it{', '').replace('}$', '')
             if cell_text in rep_genes:
                 cell.set_facecolor(self.REP_TABLE_COLOR)
             else:
