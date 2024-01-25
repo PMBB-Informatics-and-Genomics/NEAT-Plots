@@ -2,7 +2,7 @@ LPC Deployment:
 /project/ritchie_scratch/lindsay/NEAT-Plots/examples/
 
 How to Set Up A Python Environment on LPC to Run Examples:
-mamba create -n manhattan-plot-dev
+mamba create -n manhattan-plot-dev python=3.8
 mamba activate manattan-plot-dev
 mamba install pandas numpy matplotlib conda-build
 cd /project/ritchie_scratch/lindsay/NEAT-Plots/manhattan-plot
