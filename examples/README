@@ -8,4 +8,4 @@ mamba create -n manhattan-plot-dev python=3.8
 mamba activate manattan-plot-dev
 mamba install pandas numpy matplotlib conda-build
 cd /project/ritchie_scratch/lindsay/NEAT-Plots/manhattan-plot
-mamba develop .
+conda develop .
