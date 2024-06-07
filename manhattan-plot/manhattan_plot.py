@@ -1391,7 +1391,7 @@ class ManhattanPlot:
 
         for i in range(num_cols):
             connection_row = annotTable.iloc[i]
-            cell_text = table[(0, i)].get_text().get_text()
+            cell_text = table[(0, i)].get_text().get_text()[5:-2]
 
             if ((cell_text in rep_genes) or (self.phewas_rep_color_col is not None and connection_row[self.phewas_rep_color_col])) and with_table_bg:
                 table[(0, i)].set_facecolor(self.REP_TABLE_COLOR)
