@@ -338,8 +338,8 @@ class ManhattanPlot:
         self.__add_threshold_ticks()
         self.__cosmetic_axis_edits()
 
-    def plot_specific_signals(self, signal_bed_df):
-        odds_df, evens_df = self.__find_signals_specific(signal_bed_df)
+    def plot_specific_signals(self, signal_bed_df, rep_genes=[]):
+        odds_df, evens_df = self.__find_signals_specific(signal_bed_df, rep_genes=rep_genes)
 
         if self.signal_color_col is None:
             self.__plot_signals(odds_df, evens_df)
@@ -530,7 +530,8 @@ class ManhattanPlot:
             plt.savefig(save, dpi=save_res, bbox_inches='tight')
         # plt.show()
 
-    def full_plot_with_specific(self, signal_bed_df, plot_sig=True, rep_boost=False, rep_genes=[], extra_cols={}, number_cols=[], verbose=False, save=None, save_res=150):
+    def full_plot_with_specific(self, signal_bed_df, plot_sig=True, rep_boost=False, rep_genes=[], extra_cols={},
+                                number_cols=[], verbose=False, save=None, save_res=150, keep_chr_pos=True):
         if verbose:
             print('Plotting All Data...', flush=True)
         self.plot_data()
@@ -540,13 +541,13 @@ class ManhattanPlot:
             self.plot_sig_signals()
         if verbose:
             print('Plotting Specific Signals...', flush=True)
-        self.plot_specific_signals(signal_bed_df)
+        self.plot_specific_signals(signal_bed_df, rep_genes=rep_genes)
         if verbose:
             print('Finding Annotations...', flush=True)
         self.plot_annotations(plot_sig=plot_sig, rep_genes=rep_genes, rep_boost=rep_boost)
         if verbose:
             print('Adding Table...', flush=True)
-        self.plot_table(extra_cols=extra_cols, number_cols=number_cols, rep_genes=rep_genes)
+        self.plot_table(extra_cols=extra_cols, number_cols=number_cols, rep_genes=rep_genes, keep_chr_pos=keep_chr_pos)
         if save is not None:
             plt.savefig(save, dpi=save_res, bbox_inches='tight')
         # plt.show()
@@ -1012,7 +1013,7 @@ class ManhattanPlot:
 
         return odds_df, evens_df
 
-    def __find_signals_specific(self, signal_bed_df):
+    def __find_signals_specific(self, signal_bed_df, rep_genes=[]):
         odds_df, evens_df = self.__get_odds_evens()
         self.spec_genes = []
 
@@ -1024,44 +1025,39 @@ class ManhattanPlot:
 
         signal_bed_df = signal_bed_df[signal_bed_df['#CHROM'].isin(self.df['#CHROM'])].copy()
         signal_bed_df = signal_bed_df.sort_values(by=['#CHROM', 'POS'])
-        signal_bed_df['ABS_POS'] = self.__get_absolute_positions(signal_bed_df)
-
-        signal_bed_df['ROUNDED_X'] = signal_bed_df['ABS_POS'] // self.CHR_POS_ROUND * self.CHR_POS_ROUND
-
-        test_df = self.thinned[self.thinned['P'] < self.annot_thresh].reset_index(drop=False).set_index('ROUNDED_X')
-
-        n = self.ld_block // self.CHR_POS_ROUND // 2 + 1
-        keep_locs = []
-        for _, row in signal_bed_df.iterrows():
-            x = row['ROUNDED_X']
-            rounded_locs = x + self.CHR_POS_ROUND * np.arange(-n, n + 1)
-            keep_locs.extend(list(rounded_locs))
-
-        test_df = test_df.loc[test_df.index.intersection(keep_locs)]
 
         for signal_df in [odds_df, evens_df]:
-            for chrom, subDF in signal_df.groupby('#CHROM'):
+            for chrom, data_sub_df in signal_df.groupby('#CHROM'):
                 if chrom not in list(signal_bed_df['#CHROM']):
                     continue
 
                 print('chr' + str(chrom), end=' ')
-                rep_sub_df = signal_bed_df[signal_bed_df['#CHROM'] == chrom]
+                signal_bed_sub_df = signal_bed_df[signal_bed_df['#CHROM'] == chrom]
+                search_n = len(signal_bed_sub_df)
+                data_m = len(data_sub_df)
+                shape_2D = (search_n, data_m)
+                shape_2D_T = (data_m, search_n)
 
-                for _, row in rep_sub_df.iterrows():
-                    x = row['ROUNDED_X']
-                    n = self.ld_block // self.CHR_POS_ROUND // 2 + 1
+                search_starts = np.broadcast_to(signal_bed_sub_df['START'], shape_2D_T).T
+                search_stops = np.broadcast_to(signal_bed_sub_df['END'], shape_2D_T).T
+
+                data_pos = np.broadcast_to(data_sub_df['POS'], shape_2D)
+
+                overlap = np.logical_and(np.less(search_starts, data_pos), np.less(data_pos, search_stops))
+
+                for i in range(len(signal_bed_sub_df)):
+                    row = signal_bed_sub_df.iloc[i]
                     start = row['START']
                     end = row['END']
 
-                    rounded_locs = x + self.CHR_POS_ROUND * np.arange(-n, n + 1)
-
-                    keep_locs = test_df.index.intersection(rounded_locs)
+                    overlap_array = overlap[i]
+                    keep_locs = data_sub_df.index[overlap_array]
                     if len(keep_locs) == 0:
                         continue
 
-                    gene_df = test_df.loc[keep_locs].copy().reset_index(drop=False).set_index('index')
+                    gene_df = data_sub_df.loc[keep_locs].copy().reset_index(drop=False).set_index('index')
                     if 'ID' not in row.index:
-                        gene = gene_df['ID'].mode().iloc[0]
+                        gene = gene_df.sort_values(by='P')['ID'].iloc[0]
                     else:
                         gene = row['ID']
 
@@ -1078,10 +1074,10 @@ class ManhattanPlot:
                     signal_pos_mask = signal_df['POS'].between(start, end)
                     signal_pos_index = signal_df.index[signal_pos_mask]
 
-                    signal_index = subDF.index.intersection(signal_pos_index)
+                    signal_index = data_sub_df.index.intersection(signal_pos_index)
 
                     signal_df.loc[signal_index, 'SIGNAL'] = True
-                    signal_df.loc[signal_index, 'Replication'] = True
+                    signal_df.loc[signal_index, 'Replication'] = gene in rep_genes
 
         odds_df = odds_df[odds_df['SIGNAL']]
         evens_df = evens_df[evens_df['SIGNAL']]
@@ -1300,7 +1296,7 @@ class ManhattanPlot:
         annot_table = annot_table.rename(columns=extra_cols)
         annot_table['P'] = annot_table['P'].apply(lambda x: '{:.3e}'.format(x))
         annot_table['ID'] = annot_table['ID'].apply(lambda x: '$\it{' + x + '}$')
-        annot_table[number_cols] = annot_table[number_cols].applymap(lambda x: '{:.3}'.format(x))
+        annot_table[number_cols] = annot_table[number_cols].map(lambda x: '{:.3}'.format(x))
 
         location = 'center left' if not self.invert else 'center right'
 
