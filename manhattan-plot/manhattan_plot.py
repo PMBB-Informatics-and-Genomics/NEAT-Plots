@@ -156,7 +156,7 @@ class ManhattanPlot:
         print('Loaded', len(self.df), 'Rows')
         print(self.df.columns)
 
-    def clean_data(self, col_map=None, logp=None, has_chr_prefix=False):
+    def clean_data(self, col_map=None, logp=None):
         """
         Edits/reformats the loaded table to make it compatible with plotting code
         :param col_map: Dictionary mapping existing columns to required columns: #CHROM, POS, ID, and P
@@ -174,8 +174,9 @@ class ManhattanPlot:
         if logp is not None:
             self.df['P'] = 10 ** - self.df[logp]
 
-        if has_chr_prefix:
-            self.df['#CHROM'] = self.df['#CHROM'].str[3:]
+        # In case the #CHROM columns has a chr prefix, remove it
+        self.df['#CHROM'] = self.df['#CHROM'].astype(str).str.replace('chr', '')
+
         # df = df[df['#CHROM'] != 'X']
         chromosomes = list(range(1, 23))
         chromosomes.extend([str(i) for i in range(1, 23)])
@@ -549,6 +550,8 @@ class ManhattanPlot:
             print('Adding Table...', flush=True)
         self.plot_table(extra_cols=extra_cols, number_cols=number_cols, rep_genes=rep_genes, keep_chr_pos=keep_chr_pos)
         if save is not None:
+            if verbose:
+                print('Writing Figure to File...', flush=True)
             plt.savefig(save, dpi=save_res, bbox_inches='tight')
         # plt.show()
         # plt.clf()
@@ -1026,58 +1029,52 @@ class ManhattanPlot:
         signal_bed_df = signal_bed_df[signal_bed_df['#CHROM'].isin(self.df['#CHROM'])].copy()
         signal_bed_df = signal_bed_df.sort_values(by=['#CHROM', 'POS'])
 
-        for signal_df in [odds_df, evens_df]:
-            for chrom, data_sub_df in signal_df.groupby('#CHROM'):
-                if chrom not in list(signal_bed_df['#CHROM']):
+        for data_df in [odds_df, evens_df]:
+            search_n = len(signal_bed_df)
+            data_m = len(data_df)
+            shape_2D = (search_n, data_m)
+            shape_2D_T = (data_m, search_n)
+
+            search_starts = np.broadcast_to(signal_bed_df['START'], shape_2D_T).T
+            search_stops = np.broadcast_to(signal_bed_df['END'], shape_2D_T).T
+            search_chr = np.broadcast_to(signal_bed_df['#CHROM'], shape_2D_T).T
+
+            data_pos = np.broadcast_to(data_df['POS'], shape_2D)
+            data_chr = np.broadcast_to(data_df['#CHROM'], shape_2D)
+
+            chr_match = search_chr == data_chr
+            pos_match = (search_starts < data_pos) & (data_pos < search_stops)
+            overlap = chr_match & pos_match
+
+            for i in range(len(signal_bed_df)):
+                row = signal_bed_df.iloc[i]
+
+                overlap_mask = overlap[i]
+                keep_locs = data_df.index[overlap_mask]
+                if len(keep_locs) == 0:
                     continue
 
-                print('chr' + str(chrom), end=' ')
-                signal_bed_sub_df = signal_bed_df[signal_bed_df['#CHROM'] == chrom]
-                search_n = len(signal_bed_sub_df)
-                data_m = len(data_sub_df)
-                shape_2D = (search_n, data_m)
-                shape_2D_T = (data_m, search_n)
+                gene_df = data_df.loc[keep_locs].copy().reset_index(drop=False).set_index('index')
+                if 'ID' not in row.index:
+                    gene = gene_df.sort_values(by='P')['ID'].iloc[0]
+                else:
+                    gene = row['ID']
 
-                search_starts = np.broadcast_to(signal_bed_sub_df['START'], shape_2D_T).T
-                search_stops = np.broadcast_to(signal_bed_sub_df['END'], shape_2D_T).T
+                self.thinned.loc[gene_df.index, 'ID'] = gene
+                if self.signal_color_col is not None and False in pd.isnull(gene_df[self.signal_color_col]):
+                    self.thinned.loc[gene_df.index, self.signal_color_col] = \
+                    gene_df[self.signal_color_col].mode().iloc[0]
 
-                data_pos = np.broadcast_to(data_sub_df['POS'], shape_2D)
+                if self.thinned.loc[self.thinned['ID'] == gene, 'P'].min() > self.sug:
+                    continue
 
-                overlap = np.logical_and(np.less(search_starts, data_pos), np.less(data_pos, search_stops))
+                self.spec_genes.append(gene)
 
-                for i in range(len(signal_bed_sub_df)):
-                    row = signal_bed_sub_df.iloc[i]
-                    start = row['START']
-                    end = row['END']
+                signal_pos_index = data_df.index[overlap_mask]
+                signal_index = data_df.index.intersection(signal_pos_index)
 
-                    overlap_array = overlap[i]
-                    keep_locs = data_sub_df.index[overlap_array]
-                    if len(keep_locs) == 0:
-                        continue
-
-                    gene_df = data_sub_df.loc[keep_locs].copy().reset_index(drop=False).set_index('index')
-                    if 'ID' not in row.index:
-                        gene = gene_df.sort_values(by='P')['ID'].iloc[0]
-                    else:
-                        gene = row['ID']
-
-                    self.thinned.loc[gene_df.index, 'ID'] = gene
-                    if self.signal_color_col is not None and False in pd.isnull(gene_df[self.signal_color_col]):
-                        self.thinned.loc[gene_df.index, self.signal_color_col] = \
-                        gene_df[self.signal_color_col].mode().iloc[0]
-
-                    if self.thinned.loc[self.thinned['ID'] == gene, 'P'].min() > self.sug:
-                        continue
-
-                    self.spec_genes.append(gene)
-
-                    signal_pos_mask = signal_df['POS'].between(start, end)
-                    signal_pos_index = signal_df.index[signal_pos_mask]
-
-                    signal_index = data_sub_df.index.intersection(signal_pos_index)
-
-                    signal_df.loc[signal_index, 'SIGNAL'] = True
-                    signal_df.loc[signal_index, 'Replication'] = gene in rep_genes
+                data_df.loc[signal_index, 'SIGNAL'] = True
+                data_df.loc[signal_index, 'Replication'] = gene in rep_genes
 
         odds_df = odds_df[odds_df['SIGNAL']]
         evens_df = evens_df[evens_df['SIGNAL']]
