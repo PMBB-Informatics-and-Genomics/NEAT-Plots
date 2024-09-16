@@ -300,7 +300,8 @@ class ManhattanPlot:
         print('')
 
     def plot_data(self, with_table=True, legend_loc=None):
-        self.__config_axes(with_table=with_table, legend_loc=legend_loc)
+        if self.base_ax is None:
+            self.__config_axes(with_table=with_table, legend_loc=legend_loc)
 
         if self.vertical:
             self.base_ax.set_yticks(self.chr_ticks[0])
@@ -339,13 +340,13 @@ class ManhattanPlot:
         self.__add_threshold_ticks()
         self.__cosmetic_axis_edits()
 
-    def plot_specific_signals(self, signal_bed_df, rep_genes=[]):
+    def plot_specific_signals(self, signal_bed_df, rep_genes=[], legend_loc=None):
         odds_df, evens_df = self.__find_signals_specific(signal_bed_df, rep_genes=rep_genes)
 
         if self.signal_color_col is None:
             self.__plot_signals(odds_df, evens_df)
         else:
-            self.__plot_color_signals(odds_df, evens_df)
+            self.__plot_color_signals(odds_df, evens_df, legend_loc=legend_loc)
 
     def plot_sig_signals(self, rep_genes=[], rep_boost=False, legend_loc=None):
         odds_df, evens_df = self.__find_signals_sig(rep_genes, rep_boost)
@@ -508,8 +509,10 @@ class ManhattanPlot:
         self.__cosmetic_axis_edits(signals_only=True)
         if self.vertical:
             self.base_ax.set_ylabel('Signal Label')
+            self.base_ax.grid(visible=False, which='both', axis='x')
         else:
             self.base_ax.set_xlabel('Signal Label')
+            self.base_ax.grid(visible=False, which='both', axis='y')
 
         if with_table:
             for _, row in annot_df.iterrows():
@@ -532,7 +535,8 @@ class ManhattanPlot:
         # plt.show()
 
     def full_plot_with_specific(self, signal_bed_df, plot_sig=True, rep_boost=False, rep_genes=[], extra_cols={},
-                                number_cols=[], verbose=False, save=None, save_res=150, keep_chr_pos=True):
+                                number_cols=[], verbose=False, save=None, save_res=150, keep_chr_pos=True, with_table_bg=True,
+                                with_table_grid=True, legend_loc=None):
         if verbose:
             print('Plotting All Data...', flush=True)
         self.plot_data()
@@ -542,13 +546,14 @@ class ManhattanPlot:
             self.plot_sig_signals()
         if verbose:
             print('Plotting Specific Signals...', flush=True)
-        self.plot_specific_signals(signal_bed_df, rep_genes=rep_genes)
+        self.plot_specific_signals(signal_bed_df, rep_genes=rep_genes, legend_loc=legend_loc)
         if verbose:
             print('Finding Annotations...', flush=True)
         self.plot_annotations(plot_sig=plot_sig, rep_genes=rep_genes, rep_boost=rep_boost)
         if verbose:
             print('Adding Table...', flush=True)
-        self.plot_table(extra_cols=extra_cols, number_cols=number_cols, rep_genes=rep_genes, keep_chr_pos=keep_chr_pos)
+        self.plot_table(extra_cols=extra_cols, number_cols=number_cols, rep_genes=rep_genes, keep_chr_pos=keep_chr_pos,
+                        with_table_grid=with_table_grid, with_table_bg=with_table_bg)
         if save is not None:
             if verbose:
                 print('Writing Figure to File...', flush=True)
@@ -933,7 +938,7 @@ class ManhattanPlot:
             else:
                 self.base_ax.set_ylim(top=np.floor(-np.log10(self.df['P'].max())))
                 if self.max_log_p is not None:
-                    self.base_ax.set_ylim(bottom=self.max_log_p)
+                    self.base_ax.set_ylim(cottom=self.max_log_p)
                 self.max_y = self.base_ax.get_ylim()[0]
 
         self.fig.patch.set_facecolor('white')
@@ -1291,7 +1296,7 @@ class ManhattanPlot:
         annot_table = annot_table.rename(columns={'#CHROM': 'CHR',
                                                   'index': 'ID'})
         annot_table = annot_table.rename(columns=extra_cols)
-        annot_table['P'] = annot_table['P'].apply(lambda x: '{:.3e}'.format(x))
+        annot_table['P'] = annot_table['P'].apply(lambda x: '{:.2e}'.format(x))
         annot_table['ID'] = annot_table['ID'].apply(lambda x: '$\it{' + x + '}$')
         annot_table[number_cols] = annot_table[number_cols].map(lambda x: '{:.3}'.format(x))
 
