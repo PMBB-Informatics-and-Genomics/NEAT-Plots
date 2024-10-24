@@ -423,15 +423,15 @@ class ManhattanPlot:
                 alreadyPlottedGenes.append(signalID)
                 self.annot_list.append(row)
 
-    def plot_table(self, extra_cols={}, number_cols=[], rep_genes=[], keep_chr_pos=True, with_table_bg=True, with_table_grid=True, text_rep_colors=False):
+    def plot_table(self, extra_cols={}, number_cols=[], rep_genes=[], keep_chr_pos=True, with_table_bg=True, with_table_grid=True, text_rep_colors=False, table_fontsize=12):
         if self.vertical:
-            self.__plot_table_vertical(extra_cols=extra_cols, number_cols=number_cols, rep_genes=rep_genes, keep_chr_pos=keep_chr_pos)
+            self.__plot_table_vertical(extra_cols=extra_cols, number_cols=number_cols, rep_genes=rep_genes, keep_chr_pos=keep_chr_pos, table_fontsize=table_fontsize)
         else:
             self.__plot_table_horizontal(rep_genes=rep_genes, with_table_bg=with_table_bg, with_table_grid=with_table_grid, text_rep_colors=text_rep_colors)
 
     def full_plot(self, rep_genes=[], extra_cols={}, number_cols=[], rep_boost=False, save=None, with_table=True,
                   save_res=150, with_title=True, keep_chr_pos=True, with_table_bg=True, with_table_grid=True,
-                  legend_loc=None, text_rep_colors=False):
+                  legend_loc=None, text_rep_colors=False, table_fontsize=12):
         self.plot_data(with_table=with_table, legend_loc=legend_loc)
         self.plot_sig_signals(rep_genes=rep_genes, rep_boost=rep_boost, legend_loc=legend_loc)
         if with_table:
@@ -439,7 +439,8 @@ class ManhattanPlot:
                 self.plot_annotations(rep_genes=rep_genes, rep_boost=rep_boost)
             else:
                 self.__plot_pointers_only()
-            self.plot_table(extra_cols=extra_cols, number_cols=number_cols, rep_genes=rep_genes, keep_chr_pos=keep_chr_pos, with_table_bg=with_table_bg, with_table_grid=with_table_grid, text_rep_colors=text_rep_colors)
+            self.plot_table(extra_cols=extra_cols, number_cols=number_cols, rep_genes=rep_genes, keep_chr_pos=keep_chr_pos,
+                            with_table_bg=with_table_bg, with_table_grid=with_table_grid, text_rep_colors=text_rep_colors, table_fontsize=table_fontsize)
         if with_title:
             plt.suptitle(self.title)
             plt.tight_layout()
@@ -448,7 +449,8 @@ class ManhattanPlot:
         # plt.show()
         # plt.clf()
 
-    def signal_plot(self, rep_genes=[], extra_cols={}, number_cols=[], rep_boost=False, save=None, with_table=True, save_res=150, with_title=True, keep_chr_pos=True):
+    def signal_plot(self, rep_genes=[], extra_cols={}, number_cols=[], rep_boost=False, save=None, with_table=True,
+                    save_res=150, with_title=True, keep_chr_pos=True, table_fontsize=12):
         self.__config_axes(with_table=with_table)
 
         odds_df, evens_df = self.__find_signals_sig(rep_genes, rep_boost)
@@ -525,7 +527,7 @@ class ManhattanPlot:
                                       [row[self.plot_y_col], self.max_y],
                                       c='silver', linewidth=1.5, alpha=1)
 
-            self.plot_table(extra_cols=extra_cols, number_cols=number_cols, rep_genes=rep_genes, keep_chr_pos=keep_chr_pos)
+            self.plot_table(extra_cols=extra_cols, number_cols=number_cols, rep_genes=rep_genes, keep_chr_pos=keep_chr_pos, table_fontsize=table_fontsize)
 
         if with_title:
             plt.suptitle('Signals Only:\n' + self.title)
@@ -536,10 +538,10 @@ class ManhattanPlot:
 
     def full_plot_with_specific(self, signal_bed_df, plot_sig=True, rep_boost=False, rep_genes=[], extra_cols={},
                                 number_cols=[], verbose=False, save=None, save_res=150, keep_chr_pos=True, with_table_bg=True,
-                                with_table_grid=True, legend_loc=None):
+                                with_table_grid=True, legend_loc=None, with_table=True, table_fontsize=12):
         if verbose:
             print('Plotting All Data...', flush=True)
-        self.plot_data()
+        self.plot_data(with_table=with_table)
         if plot_sig:
             if verbose:
                 print('Plotting Significant Signals...', flush=True)
@@ -547,13 +549,14 @@ class ManhattanPlot:
         if verbose:
             print('Plotting Specific Signals...', flush=True)
         self.plot_specific_signals(signal_bed_df, rep_genes=rep_genes, legend_loc=legend_loc)
-        if verbose:
-            print('Finding Annotations...', flush=True)
-        self.plot_annotations(plot_sig=plot_sig, rep_genes=rep_genes, rep_boost=rep_boost)
-        if verbose:
-            print('Adding Table...', flush=True)
-        self.plot_table(extra_cols=extra_cols, number_cols=number_cols, rep_genes=rep_genes, keep_chr_pos=keep_chr_pos,
-                        with_table_grid=with_table_grid, with_table_bg=with_table_bg)
+        if with_table:
+            if verbose:
+                print('Finding Annotations...', flush=True)
+            self.plot_annotations(plot_sig=plot_sig, rep_genes=rep_genes, rep_boost=rep_boost)
+            if verbose:
+                print('Adding Table...', flush=True)
+            self.plot_table(extra_cols=extra_cols, number_cols=number_cols, rep_genes=rep_genes, keep_chr_pos=keep_chr_pos,
+                            with_table_grid=with_table_grid, with_table_bg=with_table_bg, table_fontsize=table_fontsize)
         if save is not None:
             if verbose:
                 print('Writing Figure to File...', flush=True)
@@ -1279,7 +1282,7 @@ class ManhattanPlot:
             self.cbar_ax.spines[['right', 'top', 'left', 'bottom']].set_visible(False)
             self.fig.tight_layout()
 
-    def __plot_table_vertical(self, extra_cols={}, number_cols=[], rep_genes=[], keep_chr_pos=True):
+    def __plot_table_vertical(self, extra_cols={}, number_cols=[], rep_genes=[], keep_chr_pos=True, table_fontsize=12):
         if len(self.annot_list) == 0:
             raise ValueError("No signals to annotate. Try making P-value thresholds less stringent")
 
@@ -1309,7 +1312,7 @@ class ManhattanPlot:
         table.AXESPAD = 0
 
         table.auto_set_font_size(False)
-        table.set_fontsize(12)
+        table.set_fontsize(table_fontsize)
         table.auto_set_column_width(col=list(range(len(annot_table.columns))))
         self.fig.tight_layout()
 
