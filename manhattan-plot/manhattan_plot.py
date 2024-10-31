@@ -470,6 +470,7 @@ class ManhattanPlot:
         else:
             self.base_ax.set_xticks(signal_mid.values)
             self.base_ax.set_xticklabels(signal_mid.index, rotation=30, ha='right')
+
         odd_signals = signal_size.index[::2]
         even_signals = signal_size.index[1::2]
         pos_adjust = - signal_min.loc[signal_df['ID']] + signal_start.loc[signal_df['ID']]
@@ -563,6 +564,101 @@ class ManhattanPlot:
             plt.savefig(save, dpi=save_res, bbox_inches='tight')
         # plt.show()
         # plt.clf()
+
+    def signal_plot_with_specific(self, signal_bed_df, rep_genes=[], extra_cols={}, number_cols=[], rep_boost=False, save=None, with_table=True,
+                    save_res=150, with_title=True, keep_chr_pos=True, table_fontsize=12):
+
+        self.__config_axes(with_table=with_table)
+
+        odds_df, evens_df = self.__find_signals_specific(signal_bed_df, rep_genes=rep_genes)
+        signal_df = pd.concat([odds_df, evens_df]).sort_values(by=['#CHROM', 'POS'])
+        signal_order = signal_df['ID'].unique()
+        signal_min = signal_df.groupby('ID')['POS'].min().loc[signal_order]
+        signal_max = signal_df.groupby('ID')['POS'].max().loc[signal_order]
+        signal_size = signal_max - signal_min
+        start_vals = signal_size.cumsum().values[:-1]
+        signal_start = pd.Series(data=start_vals, index=signal_size.index[1:])
+        signal_start.loc[signal_size.index[0]] = 0
+        signal_start = signal_start.loc[signal_size.index]
+        signal_mid = signal_start + (signal_size / 2)
+
+        if self.vertical:
+            self.base_ax.set_yticks(signal_mid.values)
+            self.base_ax.set_yticklabels(signal_mid.index)
+        else:
+            self.base_ax.set_xticks(signal_mid.values)
+            self.base_ax.set_xticklabels(signal_mid.index, rotation=30, ha='right')
+
+        odd_signals = signal_size.index[::2]
+        even_signals = signal_size.index[1::2]
+        pos_adjust = - signal_min.loc[signal_df['ID']] + signal_start.loc[signal_df['ID']]
+        signal_df['SIGNAL_X'] = signal_df['POS'] + pos_adjust.values
+        signal_df['SIGNAL_TEST'] = signal_df['POS'] - signal_min.loc[signal_df['ID']].values
+        self.df['SIGNAL_POS'] = signal_df['SIGNAL_X']
+        self.plot_x_col = 'SIGNAL_X' if not self.vertical else self.plot_x_col
+        self.plot_y_col = 'SIGNAL_X' if self.vertical else self.plot_y_col
+
+        odds_df = signal_df[signal_df['ID'].isin(odd_signals)]
+        evens_df = signal_df[signal_df['ID'].isin(even_signals)]
+
+        if self.signal_color_col is None:
+            self.base_ax.scatter(odds_df[self.plot_x_col], odds_df[self.plot_y_col], c=self.LIGHT_CHR_COLOR, s=25)
+            self.base_ax.scatter(evens_df[self.plot_x_col], evens_df[self.plot_y_col], c=self.DARK_CHR_COLOR, s=25)
+        else:
+            self.base_ax.scatter(odds_df[self.plot_x_col], odds_df[self.plot_y_col], c='silver', s=25)
+            self.base_ax.scatter(evens_df[self.plot_x_col], evens_df[self.plot_y_col], c='dimgrey', s=25)
+
+            filtered_odds_df = odds_df[odds_df['P'] < 1E-3]
+            filtered_evens_df = evens_df[evens_df['P'] < 1E-3]
+
+            color_min = min(odds_df[self.signal_color_col].quantile(0.05),
+                            evens_df[self.signal_color_col].quantile(0.05))
+            color_max = max(odds_df[self.signal_color_col].quantile(0.95),
+                            evens_df[self.signal_color_col].quantile(0.95))
+            print(color_min, color_max)
+
+            self.base_ax.scatter(filtered_odds_df[self.plot_x_col], filtered_odds_df[self.plot_y_col], s=25,
+                                 c=filtered_odds_df[self.signal_color_col], cmap=self.COLOR_MAP, vmin=color_min,
+                                 vmax=color_max)
+            scat = self.base_ax.scatter(filtered_evens_df[self.plot_x_col], filtered_evens_df[self.plot_y_col], s=25,
+                                        c=filtered_evens_df[self.signal_color_col], cmap=self.COLOR_MAP, vmin=color_min,
+                                        vmax=color_max)
+
+            self.fig.colorbar(scat, cax=self.cbar_ax, orientation='horizontal')
+
+        peak_idx = signal_df.groupby('ID')['ROUNDED_Y'].idxmax()
+        signal_df = signal_df.rename(columns=extra_cols)
+        annot_df = signal_df.loc[peak_idx.values].set_index('ID')
+        self.annot_list = [r for _, r in annot_df.iterrows()]
+
+        self.__cosmetic_axis_edits(signals_only=True)
+        if self.vertical:
+            self.base_ax.set_ylabel('Signal Label')
+            self.base_ax.grid(visible=False, which='both', axis='x')
+        else:
+            self.base_ax.set_xlabel('Signal Label')
+            self.base_ax.grid(visible=False, which='both', axis='y')
+
+        if with_table:
+            for _, row in annot_df.iterrows():
+                if self.vertical:
+                    self.base_ax.plot([row[self.plot_x_col], self.max_x],
+                                      [row[self.plot_y_col], row[self.plot_y_col]],
+                                      c='silver', linewidth=1.5, alpha=1)
+                else:
+                    self.base_ax.plot([row[self.plot_x_col], row[self.plot_x_col]],
+                                      [row[self.plot_y_col], self.max_y],
+                                      c='silver', linewidth=1.5, alpha=1)
+
+            self.plot_table(extra_cols=extra_cols, number_cols=number_cols, rep_genes=rep_genes,
+                            keep_chr_pos=keep_chr_pos, table_fontsize=table_fontsize)
+
+        if with_title:
+            plt.suptitle('Signals Only:\n' + self.title)
+            plt.tight_layout()
+        if save is not None:
+            plt.savefig(save, dpi=save_res, bbox_inches='tight')
+        # plt.show()
 
     def qq_plot(self, save=None, save_res=150, with_title=True, steps=30):
         use_p = self.df['P'].dropna().copy()
@@ -1301,7 +1397,11 @@ class ManhattanPlot:
         annot_table = annot_table.rename(columns=extra_cols)
         annot_table['P'] = annot_table['P'].apply(lambda x: '{:.2e}'.format(x))
         annot_table['ID'] = annot_table['ID'].apply(lambda x: '$\it{' + x + '}$')
-        annot_table[number_cols] = annot_table[number_cols].map(lambda x: '{:.3}'.format(x))
+
+        try:
+            annot_table[number_cols] = annot_table[number_cols].map(lambda x: '{:.3}'.format(x))
+        except AttributeError:
+            annot_table[number_cols] = annot_table[number_cols].applymap(lambda x: '{:.3}'.format(x))
 
         location = 'center left' if not self.invert else 'center right'
 
