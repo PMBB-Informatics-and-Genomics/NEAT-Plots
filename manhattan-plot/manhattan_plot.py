@@ -6,6 +6,7 @@ import matplotlib.patches as mpatches
 import matplotlib as mpl
 from scipy.stats import chi2
 import json
+import sys
 
 
 # https://en.wikipedia.org/wiki/Human_genome
@@ -571,6 +572,7 @@ class ManhattanPlot:
         self.__config_axes(with_table=with_table)
 
         odds_df, evens_df = self.__find_signals_specific(signal_bed_df, rep_genes=rep_genes)
+        print(len(odds_df), len(evens_df))
         signal_df = pd.concat([odds_df, evens_df]).sort_values(by=['#CHROM', 'POS'])
         signal_order = signal_df['ID'].unique()
         signal_min = signal_df.groupby('ID')['POS'].min().loc[signal_order]
@@ -627,9 +629,12 @@ class ManhattanPlot:
             self.fig.colorbar(scat, cax=self.cbar_ax, orientation='horizontal')
 
         peak_idx = signal_df.groupby('ID')['ROUNDED_Y'].idxmax()
+        print(peak_idx)
         signal_df = signal_df.rename(columns=extra_cols)
         annot_df = signal_df.loc[peak_idx.values].set_index('ID')
         self.annot_list = [r for _, r in annot_df.iterrows()]
+        if len(annot_df) > 45:
+            sys.exit('Too many signals to annotate...Exiting')
 
         self.__cosmetic_axis_edits(signals_only=True)
         if self.vertical:
@@ -1164,7 +1169,9 @@ class ManhattanPlot:
                 else:
                     gene = row['ID']
 
+                print(gene, len(gene_df.index))
                 self.thinned.loc[gene_df.index, 'ID'] = gene
+                data_df.loc[gene_df.index, 'ID'] = gene
                 if self.signal_color_col is not None and False in pd.isnull(gene_df[self.signal_color_col]):
                     self.thinned.loc[gene_df.index, self.signal_color_col] = \
                     gene_df[self.signal_color_col].mode().iloc[0]
