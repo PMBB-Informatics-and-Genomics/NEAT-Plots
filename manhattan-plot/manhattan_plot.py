@@ -1410,7 +1410,18 @@ class ManhattanPlot:
             annot_table[number_cols] = annot_table[number_cols].map(lambda x: '{:.3}'.format(x))
         except AttributeError:
             annot_table[number_cols] = annot_table[number_cols].applymap(lambda x: '{:.3}'.format(x))
-
+        # fix column underscores so they work with LaTex
+        for col in annot_table.columns:
+            try:
+                # try to convert the column to numeric
+                pd.to_numeric(annot_table[col])
+                print(f"{col} is numeric")
+            except (ValueError, TypeError):
+                print(f"{col} is not numeric")
+                # if conversion fails, replace underscores with colons
+                # annot_table[col] = annot_table[col].astype(str).str.replace('_',':')
+                annot_table[col] = annot_table[col].astype(str).str.replace('_','\_')
+                
         location = 'center left' if not self.invert else 'center right'
 
         table = mpl.table.table(ax=self.table_ax,
