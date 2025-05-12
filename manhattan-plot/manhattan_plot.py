@@ -34,6 +34,7 @@ CHR_LENGTHS = {1: 248956422,
                22: 50818468,
                23: 156040895}
 
+DEFAULT_TABLE_FONTSIZE = 12
 
 # noinspection SpellCheckingInspection
 class ManhattanPlot:
@@ -424,7 +425,7 @@ class ManhattanPlot:
                 alreadyPlottedGenes.append(signalID)
                 self.annot_list.append(row)
 
-    def plot_table(self, extra_cols={}, number_cols=[], rep_genes=[], keep_chr_pos=True, with_table_bg=True, with_table_grid=True, text_rep_colors=False, table_fontsize=12):
+    def plot_table(self, extra_cols={}, number_cols=[], rep_genes=[], keep_chr_pos=True, with_table_bg=True, with_table_grid=True, text_rep_colors=False, table_fontsize=DEFAULT_TABLE_FONTSIZE):
         if self.vertical:
             self.__plot_table_vertical(extra_cols=extra_cols, number_cols=number_cols, rep_genes=rep_genes, keep_chr_pos=keep_chr_pos, table_fontsize=table_fontsize)
         else:
@@ -432,7 +433,7 @@ class ManhattanPlot:
 
     def full_plot(self, rep_genes=[], extra_cols={}, number_cols=[], rep_boost=False, save=None, with_table=True,
                   save_res=150, with_title=True, keep_chr_pos=True, with_table_bg=True, with_table_grid=True,
-                  legend_loc=None, text_rep_colors=False, table_fontsize=12):
+                  legend_loc=None, text_rep_colors=False, table_fontsize=DEFAULT_TABLE_FONTSIZE):
         self.plot_data(with_table=with_table, legend_loc=legend_loc)
         self.plot_sig_signals(rep_genes=rep_genes, rep_boost=rep_boost, legend_loc=legend_loc)
         if with_table:
@@ -451,7 +452,7 @@ class ManhattanPlot:
         # plt.clf()
 
     def signal_plot(self, rep_genes=[], extra_cols={}, number_cols=[], rep_boost=False, save=None, with_table=True,
-                    save_res=150, with_title=True, keep_chr_pos=True, table_fontsize=12):
+                    save_res=150, with_title=True, keep_chr_pos=True, table_fontsize=DEFAULT_TABLE_FONTSIZE):
         self.__config_axes(with_table=with_table)
 
         odds_df, evens_df = self.__find_signals_sig(rep_genes, rep_boost)
@@ -540,7 +541,7 @@ class ManhattanPlot:
 
     def full_plot_with_specific(self, signal_bed_df, plot_sig=True, rep_boost=False, rep_genes=[], extra_cols={},
                                 number_cols=[], verbose=False, save=None, save_res=150, keep_chr_pos=True, with_table_bg=True,
-                                with_table_grid=True, legend_loc=None, with_table=True, table_fontsize=12):
+                                with_table_grid=True, legend_loc=None, with_table=True, table_fontsize=DEFAULT_TABLE_FONTSIZE):
         if verbose:
             print('Plotting All Data...', flush=True)
         self.plot_data(with_table=with_table)
@@ -567,7 +568,7 @@ class ManhattanPlot:
         # plt.clf()
 
     def signal_plot_with_specific(self, signal_bed_df, rep_genes=[], extra_cols={}, number_cols=[], rep_boost=False, save=None, with_table=True,
-                    save_res=150, with_title=True, keep_chr_pos=True, table_fontsize=12):
+                    save_res=150, with_title=True, keep_chr_pos=True, table_fontsize=DEFAULT_TABLE_FONTSIZE):
 
         self.__config_axes(with_table=with_table)
 
@@ -1385,7 +1386,7 @@ class ManhattanPlot:
             self.cbar_ax.spines[['right', 'top', 'left', 'bottom']].set_visible(False)
             self.fig.tight_layout()
 
-    def __plot_table_vertical(self, extra_cols={}, number_cols=[], rep_genes=[], keep_chr_pos=True, table_fontsize=12):
+    def __plot_table_vertical(self, extra_cols={}, number_cols=[], rep_genes=[], keep_chr_pos=True, table_fontsize=DEFAULT_TABLE_FONTSIZE):
         if len(self.annot_list) == 0:
             raise ValueError("No signals to annotate. Try making P-value thresholds less stringent")
 
@@ -1428,7 +1429,12 @@ class ManhattanPlot:
         if self.invert:
             self.table_ax.invert_xaxis()
 
-        cell_height = table[(0, 0)].get_height()
+        h_factor = table_fontsize / DEFAULT_TABLE_FONTSIZE
+        cell_height = table[(0, 0)].get_height() * h_factor
+        table.scale(1, h_factor)
+
+        new_table_height = (len(annot_table) + 1) * cell_height
+        table_min_y = 0.5 - (0.5 * new_table_height)  # table is centered
 
         for i in range(len(annot_table)):
             connection_row = annot_table.iloc[i]
@@ -1439,9 +1445,11 @@ class ManhattanPlot:
             else:
                 cell.set_facecolor(self.NOVEL_TABLE_COLOR)
             connect_x = 0
+            connect_y = table_min_y + ((1.5 + i) * cell_height)
+
             cp = ConnectionPatch(xyA=(self.max_x, connection_row[self.plot_y_col]),
                                  axesA=self.base_ax, coordsA='data',
-                                 xyB=(connect_x, (1 - cell.get_y()) - (0.5*cell_height)),
+                                 xyB=(connect_x, connect_y),
                                  axesB=self.table_ax, coordsB='data',
                                  arrowstyle='-', color='silver')
             self.fig.add_artist(cp)
