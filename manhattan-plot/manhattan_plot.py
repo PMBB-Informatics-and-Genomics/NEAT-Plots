@@ -141,7 +141,8 @@ class ManhattanPlot:
         for k, v in color_default_dict:
             self.__setattr__(k, v)
 
-    def load_data(self, delim='\s+'):
+    def load_data(self, delim=r'\s+'):
+    # def load_data(self, delim='\s+'):
         """
         Reads data from the summary statistics file
         :param delim: Delimiter of the table file (common are '\t', ' ', ',')
@@ -1404,7 +1405,8 @@ class ManhattanPlot:
                                                   'index': 'ID'})
         annot_table = annot_table.rename(columns=extra_cols)
         annot_table['P'] = annot_table['P'].apply(lambda x: '{:.2e}'.format(x))
-        annot_table['ID'] = annot_table['ID'].apply(lambda x: '$\it{' + x + '}$')
+        # annot_table['ID'] = annot_table['ID'].apply(lambda x: '$\it{' + x + '}$')
+        annot_table['ID'] = annot_table['ID'].apply(lambda x: r'$\it{' + x + r'}$')
 
         try:
             annot_table[number_cols] = annot_table[number_cols].map(lambda x: '{:.3}'.format(x))
@@ -1420,7 +1422,8 @@ class ManhattanPlot:
                 print(f"{col} is not numeric")
                 # if conversion fails, replace underscores with colons
                 # annot_table[col] = annot_table[col].astype(str).str.replace('_',':')
-                annot_table[col] = annot_table[col].astype(str).str.replace('_','\_')
+                # annot_table[col] = annot_table[col].astype(str).str.replace('_','\_')
+                annot_table[col] = annot_table[col].astype(str).str.replace('_', r'\_')
                 
         location = 'center left' if not self.invert else 'center right'
 
@@ -1450,7 +1453,8 @@ class ManhattanPlot:
         for i in range(len(annot_table)):
             connection_row = annot_table.iloc[i]
             cell = table[(i+1, 0)]
-            cell_text = cell.get_text().get_text().replace('$\it{', '').replace('}$', '')
+            # cell_text = cell.get_text().get_text().replace('$\it{', '').replace('}$', '')
+            cell_text = cell.get_text().get_text().replace(r'$\it{', '').replace(r'}$', '')
             if cell_text in rep_genes:
                 cell.set_facecolor(self.REP_TABLE_COLOR)
             else:
@@ -1475,7 +1479,9 @@ class ManhattanPlot:
             annotTable = self.thinned[self.thinned[self.phewas_annotate_col]].set_index('ID')
 
         annotTable = annotTable.sort_values(by=['#CHROM', 'POS'])
-        annotTable.index = ['$\it{' + i + '}$' for i in annotTable.index]
+        # annotTable.index = ['$\it{' + i + '}$' for i in annotTable.index]
+        annotTable.index = [r'$\it{' + i + r'}$' for i in annotTable.index]
+
         genes = [list(annotTable.index)]
         num_cols = len(annotTable)
 
