@@ -426,11 +426,11 @@ class ManhattanPlot:
                 alreadyPlottedGenes.append(signalID)
                 self.annot_list.append(row)
 
-    def plot_table(self, extra_cols={}, number_cols=[], rep_genes=[], keep_chr_pos=True, with_table_bg=True, with_table_grid=True, text_rep_colors=False, table_fontsize=DEFAULT_TABLE_FONTSIZE):
+    def plot_table(self, extra_cols={}, number_cols=[], rep_genes=[], keep_chr_pos=True, with_table_bg=True, with_table_grid=True, text_rep_colors=False, table_fontsize=DEFAULT_TABLE_FONTSIZE, legend_loc=None):
         if self.vertical:
-            self.__plot_table_vertical(extra_cols=extra_cols, number_cols=number_cols, rep_genes=rep_genes, keep_chr_pos=keep_chr_pos, table_fontsize=table_fontsize)
+            self.__plot_table_vertical(extra_cols=extra_cols, number_cols=number_cols, rep_genes=rep_genes, keep_chr_pos=keep_chr_pos, table_fontsize=table_fontsize, legend_loc=legend_loc)
         else:
-            self.__plot_table_horizontal(rep_genes=rep_genes, with_table_bg=with_table_bg, with_table_grid=with_table_grid, text_rep_colors=text_rep_colors)
+            self.__plot_table_horizontal(rep_genes=rep_genes, with_table_bg=with_table_bg, with_table_grid=with_table_grid, text_rep_colors=text_rep_colors, legend_loc=legend_loc)
 
     def full_plot(self, rep_genes=[], extra_cols={}, number_cols=[], rep_boost=False, save=None, with_table=True,
                   save_res=150, with_title=True, keep_chr_pos=True, with_table_bg=True, with_table_grid=True,
@@ -443,7 +443,7 @@ class ManhattanPlot:
             else:
                 self.__plot_pointers_only()
             self.plot_table(extra_cols=extra_cols, number_cols=number_cols, rep_genes=rep_genes, keep_chr_pos=keep_chr_pos,
-                            with_table_bg=with_table_bg, with_table_grid=with_table_grid, text_rep_colors=text_rep_colors, table_fontsize=table_fontsize)
+                            with_table_bg=with_table_bg, with_table_grid=with_table_grid, text_rep_colors=text_rep_colors, table_fontsize=table_fontsize, legend_loc=legend_loc)
         if with_title:
             plt.suptitle(self.title)
             plt.tight_layout()
@@ -1351,7 +1351,7 @@ class ManhattanPlot:
                                   [pointer_y, self.max_y],
                                   c='silver', linewidth=1.5, alpha=1)
 
-        self.annot_list.append(row)
+            self.annot_list.append(row)
 
     def __add_color_bar(self, mappable, categories, legend_loc=None):
         if legend_loc is None:
@@ -1372,14 +1372,16 @@ class ManhattanPlot:
             plt.rc('legend', fontsize=12)
             handles = []
             mappable_cmap = mappable.get_cmap()
-            for i in range(len(categories)):
-                handles.append(mpatches.Patch(color=mappable_cmap(i), label=categories[i]))
+            for i, cat in enumerate(categories):
+                handles.append(mpatches.Patch(color=mappable_cmap(i), label=cat))
 
             if legend_loc == 'side':
+                print('adding side legend')
                 nrows = 14
                 self.cbar_ax.legend(handles=handles, loc='lower left', ncols=max(len(categories) // nrows, 1))
             elif legend_loc == 'top':
                 ncols = self.TOP_LEGEND_COLS
+                print(f'adding top legend with {ncols} columns')
                 self.cbar_ax.legend(handles=handles, loc='lower center', ncols=ncols)
 
             self.cbar_ax.xaxis.set_visible(False)
@@ -1469,7 +1471,7 @@ class ManhattanPlot:
                                  arrowstyle='-', color='silver')
             self.fig.add_artist(cp)
 
-    def __plot_table_horizontal(self, rep_genes=[], with_table_bg=True, with_table_grid=True, text_rep_colors=False):
+    def __plot_table_horizontal(self, rep_genes=[], with_table_bg=True, with_table_grid=True, text_rep_colors=False, legend_loc=None):
         if len(self.annot_list) == 0 and self.phewas_annotate_col is None:
             raise ValueError("No signals to annotate. Try making P-value thresholds less stringent")
 
@@ -1505,7 +1507,7 @@ class ManhattanPlot:
             fractions.append(1.0)
             new_norm = mpl.colors.BoundaryNorm(boundaries=np.arange(len(unique_vals)+1), ncolors=len(unique_vals))
             new_mappable = plt.cm.ScalarMappable(norm=new_norm, cmap=plt.cm.get_cmap(self.COLOR_MAP, len(unique_vals)))
-            self.__add_color_bar(new_mappable, color_map.keys())
+            self.__add_color_bar(new_mappable, color_map.keys(), legend_loc=legend_loc)
 
         cell_width = table[(0, 0)].get_width()
         cell_height = table[(0, 0)].get_height()
