@@ -1497,7 +1497,12 @@ class ManhattanPlot:
         self.fig.tight_layout()
 
         if self.twas_color_col is not None:
-            unique_vals = sorted(annotTable[self.twas_color_col].unique())
+            if self.signal_color_col is None:
+                unique_vals = sorted(annotTable[self.twas_color_col].unique())
+            else:
+                unique_vals = list(sorted(annotTable[self.twas_color_col].unique()))
+                unique_vals.extend(self.thinned[self.signal_color_col].unique())
+                unique_vals = sorted(list(set(unique_vals)))
             cmap = plt.cm.get_cmap(self.COLOR_MAP, len(unique_vals))
             fractions = (np.arange(len(unique_vals)) / len(unique_vals)) + (0.5 / len(unique_vals))
             colors = [cmap(f) for f in fractions]
