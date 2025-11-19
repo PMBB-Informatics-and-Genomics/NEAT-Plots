@@ -1219,9 +1219,8 @@ class ManhattanPlot:
             # self.base_ax.set_yticks(np.arange(0, 350, 20))
             self.fig.set_size_inches(14.4, 8)
 
-        unique_vals = list(odds_df[self.signal_color_col].dropna().unique())
-        unique_vals.extend(list(evens_df[self.signal_color_col].dropna().unique()))
-        unique_vals = list(set(unique_vals))
+        unique_vals = list(self.thinned[self.signal_color_col].dropna().unique())
+        unique_vals = sorted(list(set(unique_vals)))
 
         discrete = ~pd.api.types.is_numeric_dtype(odds_df[self.signal_color_col])
 
@@ -1243,6 +1242,7 @@ class ManhattanPlot:
         else:
             categories = sorted(unique_vals)
             cat_to_num = dict(zip(categories, np.arange(len(categories))))
+
             odds_df['Cat_Num'] = odds_df[self.signal_color_col].replace(cat_to_num)
             evens_df['Cat_Num'] = evens_df[self.signal_color_col].replace(cat_to_num)
 
@@ -1255,10 +1255,12 @@ class ManhattanPlot:
                     odds_df['pt_sz'] = self.__convert_linear_scale(data=odds_df[self.phewas_size_col].abs(), new_min=min_size, new_max=max_size)
                     evens_df['pt_sz'] = self.__convert_linear_scale(data=evens_df[self.phewas_size_col].abs(), new_min=min_size, new_max=max_size)
 
+                use_cm = plt.cm.get_cmap(self.COLOR_MAP, len(categories))
+
                 self.base_ax.scatter(odds_df[self.plot_x_col], odds_df[self.plot_y_col], c=odds_df['Cat_Num'],
-                                     cmap=plt.cm.get_cmap(self.COLOR_MAP, len(categories)), s=odds_df['pt_sz'])
+                                     cmap=use_cm, s=odds_df['pt_sz'], vmin=0, vmax=len(categories) - 1)
                 scat = self.base_ax.scatter(evens_df[self.plot_x_col], evens_df[self.plot_y_col], c=evens_df['Cat_Num'],
-                                            cmap=plt.cm.get_cmap(self.COLOR_MAP, len(categories)), s=evens_df['pt_sz'])
+                                            cmap=use_cm, s=evens_df['pt_sz'], vmin=0, vmax=len(categories) - 1)
 
             elif self.phewas_updown_col is not None:
                 if self.phewas_size_col is None:
