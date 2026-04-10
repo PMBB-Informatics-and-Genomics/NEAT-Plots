@@ -359,11 +359,12 @@ class ManhattanPlot:
         else:
             self.__plot_color_signals(odds_df, evens_df, legend_loc=legend_loc)
 
-    def plot_annotations(self, plot_sig=True, rep_genes=[], rep_boost=False):
+    def plot_annotations(self, plot_sig=True, rep_genes=[], rep_boost=False, specific_sig_df=None):
         halfLD = self.ld_block / 2
         alreadyPlottedPos = []
         alreadyPlottedGenes = []
         self.annot_list = []
+        specific_loci = None if specific_sig_df is None else specific_sig_df.set_index('ID')
 
         # Signals and annotations always adhere to annotation threshold
         annot_mask = self.thinned['P'] < self.annot_thresh
@@ -406,31 +407,34 @@ class ManhattanPlot:
             if plot:
                 # self.base_ax.annotate(signalID, xy=(row[self.plot_x_col], row[self.plot_y_col]), va='center', ha='left')
                 signalDF = annotDF.loc[annotDF.index == signal_gene]
-                if self.vertical:
-                    if self.max_log_p is not None:
-                        pointer_x = signalDF[signalDF[self.plot_x_col] <= self.max_log_p][self.plot_x_col].max()
+                if specific_sig_df is not None and signalID in specific_loci.index and 'SKIP_POINTER' in specific_loci.columns and specific_loci.loc[signalID, 'SKIP_POINTER']:
+                    print(f'Skipping pointer for {signalID}')
+                else: # Do pointer logic
+                    if self.vertical:
+                        if self.max_log_p is not None:
+                            pointer_x = signalDF[signalDF[self.plot_x_col] <= self.max_log_p][self.plot_x_col].max()
+                        else:
+                            pointer_x = signalDF[self.plot_x_col].max()
+                        self.base_ax.plot([pointer_x, self.max_x],
+                                        [row[self.plot_y_col], row[self.plot_y_col]],
+                                        c='silver', linewidth=1.5, alpha=1)
                     else:
-                        pointer_x = signalDF[self.plot_x_col].max()
-                    self.base_ax.plot([pointer_x, self.max_x],
-                                      [row[self.plot_y_col], row[self.plot_y_col]],
-                                      c='silver', linewidth=1.5, alpha=1)
-                else:
-                    if self.max_log_p is not None:
-                        pointer_y = signalDF[signalDF[self.plot_y_col] <= self.max_log_p][self.plot_y_col].max()
-                    else:
-                        pointer_y = signalDF[self.plot_y_col].max()
-                    self.base_ax.plot([row[self.plot_x_col], row[self.plot_x_col]],
-                                      [pointer_y, self.max_y],
-                                      c='silver', linewidth=1.5, alpha=1)
+                        if self.max_log_p is not None:
+                            pointer_y = signalDF[signalDF[self.plot_y_col] <= self.max_log_p][self.plot_y_col].max()
+                        else:
+                            pointer_y = signalDF[self.plot_y_col].max()
+                        self.base_ax.plot([row[self.plot_x_col], row[self.plot_x_col]],
+                                        [pointer_y, self.max_y],
+                                        c='silver', linewidth=1.5, alpha=1)
                 alreadyPlottedPos.append(row['ROUNDED_X'])
                 alreadyPlottedGenes.append(signalID)
                 self.annot_list.append(row)
 
-    def plot_table(self, extra_cols={}, number_cols=[], rep_genes=[], keep_chr_pos=True, with_table_bg=True, with_table_grid=True, text_rep_colors=False, table_fontsize=DEFAULT_TABLE_FONTSIZE, legend_loc=None):
+    def plot_table(self, extra_cols={}, number_cols=[], rep_genes=[], keep_chr_pos=True, with_table_bg=True, with_table_grid=True, text_rep_colors=False, table_fontsize=DEFAULT_TABLE_FONTSIZE, legend_loc=None, specific_sig_df=None):
         if self.vertical:
-            self.__plot_table_vertical(extra_cols=extra_cols, number_cols=number_cols, rep_genes=rep_genes, keep_chr_pos=keep_chr_pos, table_fontsize=table_fontsize, legend_loc=legend_loc)
+            self.__plot_table_vertical(extra_cols=extra_cols, number_cols=number_cols, rep_genes=rep_genes, keep_chr_pos=keep_chr_pos, table_fontsize=table_fontsize, legend_loc=legend_loc, specific_sig_df=specific_sig_df)
         else:
-            self.__plot_table_horizontal(rep_genes=rep_genes, with_table_bg=with_table_bg, with_table_grid=with_table_grid, text_rep_colors=text_rep_colors, legend_loc=legend_loc)
+            self.__plot_table_horizontal(rep_genes=rep_genes, with_table_bg=with_table_bg, with_table_grid=with_table_grid, text_rep_colors=text_rep_colors, legend_loc=legend_loc, specific_sig_df=specific_sig_df)
 
     def full_plot(self, rep_genes=[], extra_cols={}, number_cols=[], rep_boost=False, save=None, with_table=True,
                   save_res=150, with_title=True, keep_chr_pos=True, with_table_bg=True, with_table_grid=True,
@@ -556,7 +560,7 @@ class ManhattanPlot:
         if with_table:
             if verbose:
                 print('Finding Annotations...', flush=True)
-            self.plot_annotations(plot_sig=plot_sig, rep_genes=rep_genes, rep_boost=rep_boost)
+            self.plot_annotations(plot_sig=plot_sig, rep_genes=rep_genes, rep_boost=rep_boost, specific_sig_df=signal_bed_df)
             if verbose:
                 print('Adding Table...', flush=True)
             self.plot_table(extra_cols=extra_cols, number_cols=number_cols, rep_genes=rep_genes, keep_chr_pos=keep_chr_pos,
@@ -1391,7 +1395,7 @@ class ManhattanPlot:
             self.cbar_ax.spines[['right', 'top', 'left', 'bottom']].set_visible(False)
             self.fig.tight_layout()
 
-    def __plot_table_vertical(self, extra_cols={}, number_cols=[], rep_genes=[], keep_chr_pos=True, table_fontsize=DEFAULT_TABLE_FONTSIZE):
+    def __plot_table_vertical(self, extra_cols={}, number_cols=[], rep_genes=[], keep_chr_pos=True, table_fontsize=DEFAULT_TABLE_FONTSIZE, specific_sig_df=None):
         if len(self.annot_list) == 0:
             raise ValueError("No signals to annotate. Try making P-value thresholds less stringent")
 
@@ -1456,6 +1460,14 @@ class ManhattanPlot:
 
         for i in range(len(annot_table)):
             connection_row = annot_table.iloc[i]
+
+            if connection_row['ID'] in specific_loci.index and 'SKIP_POINTER' in specific_loci.columns and specific_loci.loc[signalID, 'SKIP_POINTER']:
+                        continue
+
+            if 'SKIP_POINTER' in connection_row.index and row['SKIP_POINTER']:
+                print(f'Skipping connector for: {connection_row.ID}')
+                continue
+
             cell = table[(i+1, 0)]
             # cell_text = cell.get_text().get_text().replace('$\it{', '').replace('}$', '')
             cell_text = cell.get_text().get_text().replace(r'$\it{', '').replace(r'}$', '')
@@ -1473,7 +1485,9 @@ class ManhattanPlot:
                                  arrowstyle='-', color='silver')
             self.fig.add_artist(cp)
 
-    def __plot_table_horizontal(self, rep_genes=[], with_table_bg=True, with_table_grid=True, text_rep_colors=False, legend_loc=None):
+    def __plot_table_horizontal(self, rep_genes=[], with_table_bg=True, with_table_grid=True, text_rep_colors=False, legend_loc=None, specific_sig_df=None):
+        specific_loci = None if specific_sig_df is None else specific_sig_df.set_index('ID')
+
         if len(self.annot_list) == 0 and self.phewas_annotate_col is None:
             raise ValueError("No signals to annotate. Try making P-value thresholds less stringent")
 
@@ -1535,23 +1549,26 @@ class ManhattanPlot:
             connection_row = annotTable.iloc[i]
             cell_text = table[(0, i)].get_text().get_text()[5:-2]
 
-            if ((cell_text in rep_genes) or (self.phewas_rep_color_col is not None and connection_row[self.phewas_rep_color_col])) and with_table_bg:
-                table[(0, i)].set_facecolor(self.REP_TABLE_COLOR)
-            elif with_table_bg:
-                table[(0, i)].set_facecolor(self.NOVEL_TABLE_COLOR)
+            if specific_loci is not None and cell_text in specific_loci.index and 'SKIP_POINTER' in specific_loci.columns and specific_loci.loc[cell_text, 'SKIP_POINTER']:
+                print(f'Skipping connector for {cell_text}')
+            else:
+                if ((cell_text in rep_genes) or (self.phewas_rep_color_col is not None and connection_row[self.phewas_rep_color_col])) and with_table_bg:
+                    table[(0, i)].set_facecolor(self.REP_TABLE_COLOR)
+                elif with_table_bg:
+                    table[(0, i)].set_facecolor(self.NOVEL_TABLE_COLOR)
 
-            if ((cell_text in rep_genes) or (self.phewas_rep_color_col is not None and connection_row[self.phewas_rep_color_col])) and text_rep_colors:
-                table[(0, i)].get_text().set_color(self.DARK_CHR_COLOR)
-            elif text_rep_colors:
-                table[(0, i)].get_text().set_color(self.NOVEL_TABLE_COLOR)
+                if ((cell_text in rep_genes) or (self.phewas_rep_color_col is not None and connection_row[self.phewas_rep_color_col])) and text_rep_colors:
+                    table[(0, i)].get_text().set_color(self.DARK_CHR_COLOR)
+                elif text_rep_colors:
+                    table[(0, i)].get_text().set_color(self.NOVEL_TABLE_COLOR)
 
-            connect_y = 0 if not self.invert else 1
-            connect_x = table[(0, i)].get_x() + (0.5*cell_width) if with_table_grid else table[(0, i)].get_x()
-            cp = ConnectionPatch(xyA=(connection_row[self.plot_x_col], self.max_y),
-                                 axesA=self.base_ax, coordsA='data',
-                                 xyB=(connect_x, connect_y),
-                                 axesB=self.table_ax, coordsB='axes fraction',
-                                 arrowstyle='-', color='silver')
+                connect_y = 0 if not self.invert else 1
+                connect_x = table[(0, i)].get_x() + (0.5*cell_width) if with_table_grid else table[(0, i)].get_x()
+                cp = ConnectionPatch(xyA=(connection_row[self.plot_x_col], self.max_y),
+                                    axesA=self.base_ax, coordsA='data',
+                                    xyB=(connect_x, connect_y),
+                                    axesB=self.table_ax, coordsB='axes fraction',
+                                    arrowstyle='-', color='silver')
 
             if not with_table_grid:
                 if (cell_text in rep_genes) or (self.phewas_rep_color_col is not None and connection_row[self.phewas_rep_color_col]) and text_rep_colors:
