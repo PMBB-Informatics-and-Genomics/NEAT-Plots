@@ -1395,7 +1395,7 @@ class ManhattanPlot:
             self.cbar_ax.spines[['right', 'top', 'left', 'bottom']].set_visible(False)
             self.fig.tight_layout()
 
-    def __plot_table_vertical(self, extra_cols={}, number_cols=[], rep_genes=[], keep_chr_pos=True, table_fontsize=DEFAULT_TABLE_FONTSIZE, specific_sig_df=None):
+    def __plot_table_vertical(self, extra_cols={}, number_cols=[], rep_genes=[], keep_chr_pos=True, table_fontsize=DEFAULT_TABLE_FONTSIZE, specific_sig_df=None, legend_loc=None):
         if len(self.annot_list) == 0:
             raise ValueError("No signals to annotate. Try making P-value thresholds less stringent")
 
