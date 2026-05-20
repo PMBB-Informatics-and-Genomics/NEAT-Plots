@@ -1458,13 +1458,15 @@ class ManhattanPlot:
         new_table_height = (len(annot_table) + 1) * cell_height
         table_min_y = 0.5 - (0.5 * new_table_height)  # table is centered
 
+        specific_loci = None if specific_sig_df is None else specific_sig_df.set_index('ID')
+
         for i in range(len(annot_table)):
             connection_row = annot_table.iloc[i]
 
-            if connection_row['ID'] in specific_loci.index and 'SKIP_POINTER' in specific_loci.columns and specific_loci.loc[signalID, 'SKIP_POINTER']:
-                        continue
+            if specific_loci is not None and connection_row['ID'] in specific_loci.index and 'SKIP_POINTER' in specific_loci.columns and specific_loci.loc[connection_row['ID'], 'SKIP_POINTER']:
+                continue
 
-            if 'SKIP_POINTER' in connection_row.index and row['SKIP_POINTER']:
+            if 'SKIP_POINTER' in connection_row.index and connection_row['SKIP_POINTER']:
                 print(f'Skipping connector for: {connection_row.ID}')
                 continue
 
