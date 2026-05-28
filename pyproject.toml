@@ -1,0 +1,89 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "neat-plots"
+version = "0.2.0"
+description = "Publication-quality genomic visualization: Manhattan, QQ, TWAS, PheWAS, and boroughs plots."
+readme = "README.md"
+license = { text = "MIT" }
+authors = [
+    { name = "Lindsay Guare", email = "lindsay.guare@pennmedicine.upenn.edu" },
+]
+keywords = ["bioinformatics", "genomics", "gwas", "twas", "manhattan-plot", "visualization"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Scientific/Engineering :: Bio-Informatics",
+    "Topic :: Scientific/Engineering :: Visualization",
+]
+requires-python = ">=3.9"
+
+# Core runtime dependencies (no GUI)
+dependencies = [
+    "matplotlib>=3.6",
+    "numpy>=1.23",
+    "pandas>=1.5",
+    "scipy>=1.9",
+]
+
+[project.optional-dependencies]
+# pip install neat-plots[gui]
+gui = [
+    "pyside6>=6.3",
+]
+# pip install neat-plots[dev]  (for contributors)
+dev = [
+    "pytest>=7",
+    "pytest-mpl>=0.16",   # image-regression tests
+    "tox>=4",
+    "ruff",               # linting / formatting
+    "mypy",               # type checking
+    "build",              # packaging
+    "twine",              # PyPI upload
+]
+# pip install neat-plots[docs]  (to build the documentation site)
+docs = [
+    "mkdocs-material>=9.5",
+    "mkdocstrings[python]>=0.25",
+    "mkdocs-gen-files>=0.5",
+    "mkdocs-literate-nav>=0.6",
+    "mkdocs-section-index>=0.3",
+]
+
+[project.urls]
+Homepage       = "https://github.com/RitchieLab/NEAT-Plots"
+Documentation  = "https://RitchieLab.github.io/NEAT-Plots"
+"Bug Tracker"  = "https://github.com/RitchieLab/NEAT-Plots/issues"
+
+# ---------------------------------------------------------------------------
+# Tool configuration
+# ---------------------------------------------------------------------------
+
+[tool.setuptools.packages.find]
+# Discover neat_plots/ automatically; exclude legacy manhattan-plot/ directory
+include  = ["neat_plots*"]
+exclude  = ["manhattan-plot*", "examples*", "gui*", "tests*"]
+
+[tool.ruff]
+line-length    = 100
+target-version = "py39"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I"]
+ignore = ["E501"]   # line-length handled by formatter
+
+[tool.mypy]
+python_version = "3.9"
+ignore_missing_imports = true
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts   = "-v"

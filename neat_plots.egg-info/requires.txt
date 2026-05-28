@@ -1,0 +1,16 @@
+matplotlib>=3.6
+numpy>=1.23
+pandas>=1.5
+scipy>=1.9
+
+[dev]
+pytest>=7
+pytest-mpl>=0.16
+tox>=4
+ruff
+mypy
+build
+twine
+
+[gui]
+pyside6>=6.3

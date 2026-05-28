@@ -1,0 +1,125 @@
+site_name: NEAT-Plots
+site_description: >-
+  Publication-quality genomic visualization for GWAS, TWAS, ExWAS, and PheWAS —
+  Manhattan plots, QQ plots, boroughs plots, and more.
+site_url: https://RitchieLab.github.io/NEAT-Plots
+repo_url: https://github.com/RitchieLab/NEAT-Plots
+repo_name: RitchieLab/NEAT-Plots
+edit_uri: edit/main/docs/
+
+# ---------------------------------------------------------------------------
+# Theme
+# ---------------------------------------------------------------------------
+theme:
+  name: material
+  logo: assets/img/logo.png
+  favicon: assets/img/logo.png
+  palette:
+    - scheme: default
+      primary: deep purple
+      accent: pink
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    - scheme: slate
+      primary: deep purple
+      accent: pink
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+  features:
+    - navigation.tabs
+    - navigation.tabs.sticky
+    - navigation.sections
+    - navigation.expand
+    - navigation.top
+    - toc.follow
+    - content.code.copy
+    - content.code.annotate
+    - search.highlight
+    - search.suggest
+
+# ---------------------------------------------------------------------------
+# Navigation
+# ---------------------------------------------------------------------------
+nav:
+  - Home: index.md
+  - Getting Started:
+      - Installation: installation.md
+      - Quick Start: quickstart.md
+  - Usage Guide:
+      - GWAS Manhattan & QQ: usage/manhattan.md
+      - TWAS / Boroughs Plot: usage/boroughs.md
+      - ExWAS Plots: usage/exwas.md
+      - Memory-Efficient Loading: usage/memory.md
+      - Customization: usage/customization.md
+  - Gallery: gallery/index.md
+  - API Reference:
+      - ManhattanPlot: api/manhattan_plot.md
+      - BoroughsPlot: api/boroughs_plot.md
+      - BasePlot: api/base.md
+  - Contributing: contributing.md
+  - Changelog: changelog.md
+
+# ---------------------------------------------------------------------------
+# Plugins
+# ---------------------------------------------------------------------------
+plugins:
+  - search
+  - mkdocstrings:
+      default_handler: python
+      handlers:
+        python:
+          paths: [.]
+          options:
+            docstring_style: numpy
+            show_source: true
+            show_root_heading: true
+            show_root_full_path: false
+            heading_level: 2
+            members_order: source
+            separate_signature: true
+            show_signature_annotations: true
+            merge_init_into_class: true
+            filters:
+              - "!^_[^_]"   # hide single-underscore private methods
+              - "!^__"       # hide dunder methods
+
+# ---------------------------------------------------------------------------
+# Markdown extensions
+# ---------------------------------------------------------------------------
+markdown_extensions:
+  - admonition
+  - pymdownx.details
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - pymdownx.tabbed:
+      alternate_style: true
+  - attr_list
+  - md_in_html
+  - tables
+  - toc:
+      permalink: true
+  - footnotes
+
+# ---------------------------------------------------------------------------
+# Extra
+# ---------------------------------------------------------------------------
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/RitchieLab/NEAT-Plots
+  version:
+    provider: mike
+
+extra_css:
+  - assets/extra.css
