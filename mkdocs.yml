@@ -2,9 +2,9 @@ site_name: NEAT-Plots
 site_description: >-
   Publication-quality genomic visualization for GWAS, TWAS, ExWAS, and PheWAS —
   Manhattan plots, QQ plots, boroughs plots, and more.
-site_url: https://RitchieLab.github.io/NEAT-Plots
-repo_url: https://github.com/RitchieLab/NEAT-Plots
-repo_name: RitchieLab/NEAT-Plots
+site_url: https://PMBB-Informatics-and-Genomics.github.io/NEAT-Plots
+repo_url: https://github.com/PMBB-Informatics-and-Genomics/NEAT-Plots
+repo_name: PMBB-Informatics-and-Genomics/NEAT-Plots
 edit_uri: edit/main/docs/
 
 # ---------------------------------------------------------------------------
@@ -117,9 +117,7 @@ markdown_extensions:
 extra:
   social:
     - icon: fontawesome/brands/github
-      link: https://github.com/RitchieLab/NEAT-Plots
-  version:
-    provider: mike
+      link: https://github.com/PMBB-Informatics-and-Genomics/NEAT-Plots
 
 extra_css:
   - assets/extra.css

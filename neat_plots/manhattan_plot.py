@@ -1228,6 +1228,11 @@ class ManhattanPlot(BasePlot):
                 print(f"Skipping connector for: {clean_id}")
                 continue
 
+            # Also check SKIP_POINTER directly on the annot_table row
+            if "SKIP_POINTER" in connection_row.index and connection_row["SKIP_POINTER"]:
+                print(f"Skipping connector for: {clean_id}")
+                continue
+
             cell = table[(i + 1, 0)]
             cell.set_facecolor(
                 self.REP_TABLE_COLOR if clean_id in rep_genes else self.NOVEL_TABLE_COLOR
