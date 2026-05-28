@@ -36,9 +36,7 @@ jobs:
         run: python docs/generate_gallery.py
 
       - name: Build docs (strict — fail on warnings)
-        run: ~/.local/bin/mkdocs build --strict --verbose
-        # Falls back to system path if mkdocs is on PATH
-        # If this fails, try: python -m mkdocs build --strict
+        run: python -m mkdocs build --strict --verbose
 
       - name: Upload pages artifact
         if: github.event_name != 'pull_request'
