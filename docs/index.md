@@ -5,11 +5,11 @@
 <div class="badge-row">
   <img src="https://img.shields.io/pypi/v/neat-plots?color=purple" alt="PyPI">
   <img src="https://img.shields.io/pypi/pyversions/neat-plots?color=purple" alt="Python versions">
-  <img src="https://img.shields.io/github/license/RitchieLab/NEAT-Plots" alt="License">
-  <img src="https://img.shields.io/github/actions/workflow/status/RitchieLab/NEAT-Plots/docs.yml?label=docs" alt="Docs">
+  <img src="https://img.shields.io/github/license/PMBB-Informatics-and-Genomics/NEAT-Plots" alt="License">
+  <img src="https://img.shields.io/github/actions/workflow/status/PMBB-Informatics-and-Genomics/NEAT-Plots/docs.yml?label=docs" alt="Docs">
 </div>
 
-NEAT-Plots (**N**ovel **E**fficient **A**nnotated **T**ools) is a Python package that turns GWAS, TWAS, ExWAS, and PheWAS summary statistics into annotated, publication-ready figures with minimal code.
+NEAT-Plots (**N**otation of **E**ffects **A**cross **T**raits) is a Python package that turns GWAS, TWAS, ExWAS, and PheWAS summary statistics into annotated, publication-ready figures with minimal code.
 
 ---
 
