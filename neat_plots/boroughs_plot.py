@@ -62,6 +62,9 @@ class BoroughsPlot(BasePlot):
     plot_x_col: str = "ROUNDED_X"
     plot_y_col: str = "ROUNDED_Y"
 
+    # Rasterize scatter points for smaller, publication-ready vector files.
+    RASTERIZED: bool = True
+
     def __init__(
         self,
         file_path: str,
@@ -220,11 +223,11 @@ class BoroughsPlot(BasePlot):
                 b.xaxis.tick_top()
 
             if self.signal_color_col is None and self.twas_color_col is None:
-                b.scatter(odds[self.plot_x_col],  odds[self.plot_y_col],  c=self.LIGHT_CHR_COLOR, s=2)
-                b.scatter(evens[self.plot_x_col], evens[self.plot_y_col], c=self.DARK_CHR_COLOR,  s=2)
+                b.scatter(odds[self.plot_x_col],  odds[self.plot_y_col],  c=self.LIGHT_CHR_COLOR, s=2, rasterized=self.RASTERIZED)
+                b.scatter(evens[self.plot_x_col], evens[self.plot_y_col], c=self.DARK_CHR_COLOR,  s=2, rasterized=self.RASTERIZED)
             else:
-                b.scatter(odds[self.plot_x_col],  odds[self.plot_y_col],  edgecolors="silver",  s=2)
-                b.scatter(evens[self.plot_x_col], evens[self.plot_y_col], edgecolors="dimgray", s=2)
+                b.scatter(odds[self.plot_x_col],  odds[self.plot_y_col],  edgecolors="silver",  s=2, rasterized=self.RASTERIZED)
+                b.scatter(evens[self.plot_x_col], evens[self.plot_y_col], edgecolors="dimgray", s=2, rasterized=self.RASTERIZED)
 
         self._add_threshold_ticks()
         self._cosmetic_axis_edits()
@@ -439,11 +442,11 @@ class BoroughsPlot(BasePlot):
         evens_df = signal_df[signal_df["ID"].isin(even_signals)]
 
         if self.signal_color_col is None:
-            self.base_ax.scatter(odds_df["SIGNAL_X"],  odds_df[self.plot_y_col],  c=self.LIGHT_CHR_COLOR, s=25)
-            self.base_ax.scatter(evens_df["SIGNAL_X"], evens_df[self.plot_y_col], c=self.DARK_CHR_COLOR,  s=25)
+            self.base_ax.scatter(odds_df["SIGNAL_X"],  odds_df[self.plot_y_col],  c=self.LIGHT_CHR_COLOR, s=25, rasterized=self.RASTERIZED)
+            self.base_ax.scatter(evens_df["SIGNAL_X"], evens_df[self.plot_y_col], c=self.DARK_CHR_COLOR,  s=25, rasterized=self.RASTERIZED)
         else:
-            self.base_ax.scatter(odds_df["SIGNAL_X"],  odds_df[self.plot_y_col],  c="silver",  s=25)
-            self.base_ax.scatter(evens_df["SIGNAL_X"], evens_df[self.plot_y_col], c="dimgrey", s=25)
+            self.base_ax.scatter(odds_df["SIGNAL_X"],  odds_df[self.plot_y_col],  c="silver",  s=25, rasterized=self.RASTERIZED)
+            self.base_ax.scatter(evens_df["SIGNAL_X"], evens_df[self.plot_y_col], c="dimgrey", s=25, rasterized=self.RASTERIZED)
 
             color_min = min(odds_df[self.signal_color_col].quantile(0.05),  evens_df[self.signal_color_col].quantile(0.05))
             color_max = max(odds_df[self.signal_color_col].quantile(0.95),  evens_df[self.signal_color_col].quantile(0.95))
@@ -451,7 +454,7 @@ class BoroughsPlot(BasePlot):
 
             filt_odds  = odds_df[odds_df["P"]   < 1e-3]
             filt_evens = evens_df[evens_df["P"] < 1e-3]
-            kw = dict(s=25, cmap=self.COLOR_MAP, vmin=color_min, vmax=color_max)
+            kw = dict(s=25, cmap=self.COLOR_MAP, vmin=color_min, vmax=color_max, rasterized=self.RASTERIZED)
             self.base_ax.scatter(filt_odds["SIGNAL_X"],  filt_odds[self.plot_y_col],  c=filt_odds[self.signal_color_col],  **kw)
             scat = self.base_ax.scatter(filt_evens["SIGNAL_X"], filt_evens[self.plot_y_col], c=filt_evens[self.signal_color_col], **kw)
             self.fig.colorbar(scat, cax=self.cbar_ax, orientation="horizontal")
@@ -505,6 +508,7 @@ class BoroughsPlot(BasePlot):
             x=x_map.loc[self.df.dropna(subset="TRAIT")["ID"]],
             y=-np.log10(self.df.dropna(subset="TRAIT")["P"]),
             c=cat_num_list, cmap=cmap, s=60, zorder=10,
+            rasterized=self.RASTERIZED,
         )
         self.base_ax.set_xticks(x_map.values)
         self.base_ax.set_xticklabels(x_map.index, rotation=30, ha="right")
@@ -767,8 +771,8 @@ class BoroughsPlot(BasePlot):
             evens = evens_list[i]
             colors_odd  = odds["Replication"].replace({True: self.REP_HIT_COLOR,  False: self.NOVEL_HIT_COLOR})
             colors_even = evens["Replication"].replace({True: self.REP_HIT_COLOR, False: self.NOVEL_HIT_COLOR})
-            b.scatter(odds[self.plot_x_col],  odds[self.plot_y_col],  c=colors_odd,  s=10)
-            b.scatter(evens[self.plot_x_col], evens[self.plot_y_col], c=colors_even, s=10)
+            b.scatter(odds[self.plot_x_col],  odds[self.plot_y_col],  c=colors_odd,  s=10, rasterized=self.RASTERIZED)
+            b.scatter(evens[self.plot_x_col], evens[self.plot_y_col], c=colors_even, s=10, rasterized=self.RASTERIZED)
 
     def _plot_color_signals(self, odds_list, evens_list, legend_loc=None) -> None:
         unique_vals = sorted(set(self.thinned[self.signal_color_col].dropna().unique()))
@@ -781,7 +785,7 @@ class BoroughsPlot(BasePlot):
             if not discrete:
                 color_min = min(odds[self.signal_color_col].quantile(0.05),  evens[self.signal_color_col].quantile(0.05))
                 color_max = max(odds[self.signal_color_col].quantile(0.95),  evens[self.signal_color_col].quantile(0.95))
-                kw = dict(cmap=plt.cm.get_cmap(self.COLOR_MAP), s=10, vmin=color_min, vmax=color_max)
+                kw = dict(cmap=plt.cm.get_cmap(self.COLOR_MAP), s=10, vmin=color_min, vmax=color_max, rasterized=self.RASTERIZED)
                 b.scatter(odds[self.plot_x_col],  odds[self.plot_y_col],  c=odds[self.signal_color_col],  **kw)
                 scat = b.scatter(evens[self.plot_x_col], evens[self.plot_y_col], c=evens[self.signal_color_col], **kw)
                 self.fig.colorbar(scat, cax=self.cbar_ax[i], orientation="horizontal")
@@ -796,7 +800,7 @@ class BoroughsPlot(BasePlot):
                 evens_copy["pt_sz"]   = 10
 
                 use_cm  = plt.cm.get_cmap(self.COLOR_MAP, len(categories))
-                cmap_kw = dict(cmap=use_cm, vmin=0, vmax=len(categories) - 1)
+                cmap_kw = dict(cmap=use_cm, vmin=0, vmax=len(categories) - 1, rasterized=self.RASTERIZED)
                 b.scatter(odds_copy[self.plot_x_col],  odds_copy[self.plot_y_col],  c=odds_copy["Cat_Num"],  s=odds_copy["pt_sz"],  **cmap_kw)
                 scat = b.scatter(evens_copy[self.plot_x_col], evens_copy[self.plot_y_col], c=evens_copy["Cat_Num"], s=evens_copy["pt_sz"], **cmap_kw)
 
@@ -923,7 +927,7 @@ class BoroughsPlot(BasePlot):
                 if self.twas_updown_col is not None:
                     shape = "v" if connection_row[self.twas_updown_col] < 0 else "^"
                     color = color_map.get(connection_row[self.twas_color_col], self.NOVEL_HIT_COLOR) if self.twas_color_col else (self.REP_HIT_COLOR if is_rep else self.NOVEL_HIT_COLOR)
-                    self.base_ax[axi].scatter(connection_row[self.plot_x_col], connection_row[self.plot_y_col], color=color, marker=shape, s=60)
+                    self.base_ax[axi].scatter(connection_row[self.plot_x_col], connection_row[self.plot_y_col], color=color, marker=shape, s=60, rasterized=self.RASTERIZED)
 
                 self.fig.add_artist(cp)
 

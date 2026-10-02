@@ -63,6 +63,12 @@ class ManhattanPlot(BasePlot):
 
     vertical: bool = True
 
+    # Rasterize scatter points for smaller, publication-ready vector files.
+    # Keeps axes, labels, and annotations as crisp vectors while bitmapping
+    # the data layer.  Set to False only when every point must be selectable
+    # in the output PDF (e.g. for interactive exploration).
+    RASTERIZED: bool = True
+
     def __init__(
         self,
         file_path: str,
@@ -192,8 +198,8 @@ class ManhattanPlot(BasePlot):
         odds_df, evens_df = self._get_odds_evens()
 
         if self.signal_color_col is None and self.twas_color_col is None:
-            self.base_ax.scatter(odds_df[self.plot_x_col],  odds_df[self.plot_y_col],  c=self.LIGHT_CHR_COLOR, s=2)
-            self.base_ax.scatter(evens_df[self.plot_x_col], evens_df[self.plot_y_col], c=self.DARK_CHR_COLOR,  s=2)
+            self.base_ax.scatter(odds_df[self.plot_x_col],  odds_df[self.plot_y_col],  c=self.LIGHT_CHR_COLOR, s=2, rasterized=self.RASTERIZED)
+            self.base_ax.scatter(evens_df[self.plot_x_col], evens_df[self.plot_y_col], c=self.DARK_CHR_COLOR,  s=2, rasterized=self.RASTERIZED)
         else:
             if self.phewas_size_col is None:
                 odds_df["pt_sz"]  = 2
@@ -203,11 +209,11 @@ class ManhattanPlot(BasePlot):
                 evens_df["pt_sz"] = self._convert_linear_scale(evens_df[self.phewas_size_col].abs(), self.MIN_PT_SZ, self.MAX_PT_SZ)
 
             if self.phewas_updown_col is None:
-                self.base_ax.scatter(odds_df[self.plot_x_col],  odds_df[self.plot_y_col],  c="silver",  s=odds_df["pt_sz"])
-                self.base_ax.scatter(evens_df[self.plot_x_col], evens_df[self.plot_y_col], c="dimgray", s=evens_df["pt_sz"])
+                self.base_ax.scatter(odds_df[self.plot_x_col],  odds_df[self.plot_y_col],  c="silver",  s=odds_df["pt_sz"], rasterized=self.RASTERIZED)
+                self.base_ax.scatter(evens_df[self.plot_x_col], evens_df[self.plot_y_col], c="dimgray", s=evens_df["pt_sz"], rasterized=self.RASTERIZED)
             else:
-                self.base_ax.scatter(odds_df[self.plot_x_col],  odds_df[self.plot_y_col],  edgecolors="silver",  facecolors="none", s=odds_df["pt_sz"],  alpha=1, linewidth=0.2)
-                self.base_ax.scatter(evens_df[self.plot_x_col], evens_df[self.plot_y_col], edgecolors="dimgray", facecolors="none", s=evens_df["pt_sz"], alpha=1, linewidth=0.2)
+                self.base_ax.scatter(odds_df[self.plot_x_col],  odds_df[self.plot_y_col],  edgecolors="silver",  facecolors="none", s=odds_df["pt_sz"],  alpha=1, linewidth=0.2, rasterized=self.RASTERIZED)
+                self.base_ax.scatter(evens_df[self.plot_x_col], evens_df[self.plot_y_col], edgecolors="dimgray", facecolors="none", s=evens_df["pt_sz"], alpha=1, linewidth=0.2, rasterized=self.RASTERIZED)
 
         self._add_threshold_ticks()
         self._cosmetic_axis_edits()
@@ -610,6 +616,7 @@ class ManhattanPlot(BasePlot):
                 x=x_map.loc[self.df.dropna(subset="TRAIT")["ID"]],
                 y=-np.log10(self.df.dropna(subset="TRAIT")["P"]),
                 c=cat_num_list, cmap=cmap, s=60, zorder=10,
+                rasterized=self.RASTERIZED,
             )
             self.base_ax.set_xticks(x_map.values)
             self.base_ax.set_xticklabels(x_map.index, rotation=30, ha="right")
@@ -621,6 +628,7 @@ class ManhattanPlot(BasePlot):
                 x=x_map.loc[self.df.dropna(subset="TRAIT")["ID"]],
                 y=-np.log10(self.df.dropna(subset="TRAIT")["P"]),
                 c=cat_num_list, cmap=cmap, s=60, zorder=10,
+                rasterized=self.RASTERIZED,
             )
             self.upper_base_ax.scatter(**kwargs)
             scat = self.lower_base_ax.scatter(**kwargs)
@@ -953,8 +961,8 @@ class ManhattanPlot(BasePlot):
     def _plot_signals(self, odds_df, evens_df) -> None:
         colors_odd  = odds_df["Replication"].replace({True: self.REP_HIT_COLOR,  False: self.NOVEL_HIT_COLOR})
         colors_even = evens_df["Replication"].replace({True: self.REP_HIT_COLOR, False: self.NOVEL_HIT_COLOR})
-        self.base_ax.scatter(odds_df[self.plot_x_col],  odds_df[self.plot_y_col],  c=colors_odd,  s=10)
-        self.base_ax.scatter(evens_df[self.plot_x_col], evens_df[self.plot_y_col], c=colors_even, s=10)
+        self.base_ax.scatter(odds_df[self.plot_x_col],  odds_df[self.plot_y_col],  c=colors_odd,  s=10, rasterized=self.RASTERIZED)
+        self.base_ax.scatter(evens_df[self.plot_x_col], evens_df[self.plot_y_col], c=colors_even, s=10, rasterized=self.RASTERIZED)
 
     def _plot_color_signals(self, odds_df, evens_df, legend_loc=None) -> None:
         if self.phewas_rep_color_col is not None:
@@ -968,7 +976,7 @@ class ManhattanPlot(BasePlot):
         if not discrete:
             color_min = min(odds_df[self.signal_color_col].quantile(0.05),  evens_df[self.signal_color_col].quantile(0.05))
             color_max = max(odds_df[self.signal_color_col].quantile(0.95),  evens_df[self.signal_color_col].quantile(0.95))
-            kw = dict(cmap=plt.cm.get_cmap(self.COLOR_MAP), s=10, vmin=color_min, vmax=color_max)
+            kw = dict(cmap=plt.cm.get_cmap(self.COLOR_MAP), s=10, vmin=color_min, vmax=color_max, rasterized=self.RASTERIZED)
             self.base_ax.scatter(odds_df[self.plot_x_col],  odds_df[self.plot_y_col],  c=odds_df[self.signal_color_col],  **kw)
             scat = self.base_ax.scatter(evens_df[self.plot_x_col], evens_df[self.plot_y_col], c=evens_df[self.signal_color_col], **kw)
             self.fig.colorbar(scat, cax=self.cbar_ax, orientation="horizontal")
@@ -987,7 +995,7 @@ class ManhattanPlot(BasePlot):
                     evens_df["pt_sz"] = self._convert_linear_scale(evens_df[self.phewas_size_col].abs(), self.MIN_PT_SZ, self.MAX_PT_SZ)
 
                 use_cm = plt.cm.get_cmap(self.COLOR_MAP, len(categories))
-                cmap_kw = dict(cmap=use_cm, vmin=0, vmax=len(categories) - 1)
+                cmap_kw = dict(cmap=use_cm, vmin=0, vmax=len(categories) - 1, rasterized=self.RASTERIZED)
                 self.base_ax.scatter(odds_df[self.plot_x_col],  odds_df[self.plot_y_col],  c=odds_df["Cat_Num"],  s=odds_df["pt_sz"],  **cmap_kw)
                 scat = self.base_ax.scatter(evens_df[self.plot_x_col], evens_df[self.plot_y_col], c=evens_df["Cat_Num"], s=evens_df["pt_sz"], **cmap_kw)
 
@@ -1012,6 +1020,7 @@ class ManhattanPlot(BasePlot):
                                 c=sub_df["Cat_Num"], cmap=cmap_obj,
                                 s=sub_df["pt_sz"], marker=shape,
                                 edgecolors="k", linewidth=0.3,
+                                rasterized=self.RASTERIZED,
                             )
                         else:
                             print("Updown and Fill", flush=True)
@@ -1024,6 +1033,7 @@ class ManhattanPlot(BasePlot):
                                 s=sub_df["pt_sz"], marker=shape,
                                 edgecolors=edge_colors.values, linewidth=1,
                                 facecolors=face_colors.values,
+                                rasterized=self.RASTERIZED,
                             )
                             fractions  = (np.arange(len(categories)) / len(categories)) + (0.5 / len(categories))
                             new_norm   = mpl.colors.BoundaryNorm(boundaries=np.arange(len(categories) + 1), ncolors=len(categories))
@@ -1115,11 +1125,11 @@ class ManhattanPlot(BasePlot):
 
     def _scatter_signal_plot(self, odds_df, evens_df) -> None:
         if self.signal_color_col is None:
-            self.base_ax.scatter(odds_df[self.plot_x_col],  odds_df[self.plot_y_col],  c=self.LIGHT_CHR_COLOR, s=25)
-            self.base_ax.scatter(evens_df[self.plot_x_col], evens_df[self.plot_y_col], c=self.DARK_CHR_COLOR,  s=25)
+            self.base_ax.scatter(odds_df[self.plot_x_col],  odds_df[self.plot_y_col],  c=self.LIGHT_CHR_COLOR, s=25, rasterized=self.RASTERIZED)
+            self.base_ax.scatter(evens_df[self.plot_x_col], evens_df[self.plot_y_col], c=self.DARK_CHR_COLOR,  s=25, rasterized=self.RASTERIZED)
         else:
-            self.base_ax.scatter(odds_df[self.plot_x_col],  odds_df[self.plot_y_col],  c="silver",  s=25)
-            self.base_ax.scatter(evens_df[self.plot_x_col], evens_df[self.plot_y_col], c="dimgrey", s=25)
+            self.base_ax.scatter(odds_df[self.plot_x_col],  odds_df[self.plot_y_col],  c="silver",  s=25, rasterized=self.RASTERIZED)
+            self.base_ax.scatter(evens_df[self.plot_x_col], evens_df[self.plot_y_col], c="dimgrey", s=25, rasterized=self.RASTERIZED)
             for src, filtered in (
                 (odds_df,  odds_df[odds_df["P"]   < 1e-3]),
                 (evens_df, evens_df[evens_df["P"] < 1e-3]),
@@ -1130,7 +1140,7 @@ class ManhattanPlot(BasePlot):
             print(color_min, color_max)
             filt_odds  = odds_df[odds_df["P"]   < 1e-3]
             filt_evens = evens_df[evens_df["P"] < 1e-3]
-            kw = dict(s=25, cmap=self.COLOR_MAP, vmin=color_min, vmax=color_max)
+            kw = dict(s=25, cmap=self.COLOR_MAP, vmin=color_min, vmax=color_max, rasterized=self.RASTERIZED)
             self.base_ax.scatter(filt_odds[self.plot_x_col],  filt_odds[self.plot_y_col],  c=filt_odds[self.signal_color_col],  **kw)
             scat = self.base_ax.scatter(filt_evens[self.plot_x_col], filt_evens[self.plot_y_col], c=filt_evens[self.signal_color_col], **kw)
             self.fig.colorbar(scat, cax=self.cbar_ax, orientation="horizontal")
@@ -1361,6 +1371,6 @@ class ManhattanPlot(BasePlot):
             if self.twas_updown_col is not None:
                 shape = "v" if connection_row[self.twas_updown_col] < 0 else "^"
                 color = color_map.get(connection_row[self.twas_color_col], self.REP_HIT_COLOR if cell_text in rep_genes else self.NOVEL_HIT_COLOR)
-                self.base_ax.scatter(connection_row[self.plot_x_col], connection_row[self.plot_y_col], color=color, marker=shape, s=60)
+                self.base_ax.scatter(connection_row[self.plot_x_col], connection_row[self.plot_y_col], color=color, marker=shape, s=60, rasterized=self.RASTERIZED)
 
             self.fig.add_artist(cp)
